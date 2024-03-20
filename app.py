@@ -1,0 +1,138 @@
+from Tagmodule import Tagmodule
+from UrlModule import URLModule
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
+import json
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+from collections import Counter
+from urllib.parse import urlparse, urlunparse, quote
+import concurrent.futures
+
+class App:
+    def __init__(self, url, desired_chars_per_cluster=5000):
+        self.urlmodule = URLModule("q")
+        self.tagmodule = Tagmodule()
+        self.url = url
+        self.desired_chars_per_cluster = desired_chars_per_cluster
+        self.urls = []
+        self.texts_per_url = {}
+        self.all_paragraphs = []
+        self.removed_paragraphs = []  # 削除されたパラグラフを追跡
+
+    def extract_text_for_url(self, url):
+        # Tagmoduleのインスタンスを作成
+        tagmodule = Tagmodule()
+        # URLごとにテキストと段落を抽出
+        text, _ = tagmodule.extract_text_without_splitting(url)
+        paragraphs = tagmodule.extract_paragraphs(text)
+        return url, paragraphs
+
+    def encode_url(self, url):
+        # URLをコンポーネントに分割
+        scheme, netloc, path, params, query, fragment = urlparse(url)
+        # パスとクエリをエンコード
+        path = quote(path)
+        query = quote(query)
+        # エンコードされたURLを再構築
+        encoded_url = urlunparse((scheme, netloc, path, params, query, fragment))
+        return encoded_url
+
+    def extract_and_process_texts(self):
+        # ThreadPoolExecutorを使用して並行処理を実行
+        self.urls = self.urlmodule.dispatch_url(self.url)
+
+        print(f'抽出されたURLの数: {len(self.urls)}')
+        print(self.urls)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+            # URLごとにextract_text_for_url関数を実行
+            future_to_url = {executor.submit(self.extract_text_for_url, self.encode_url(url)): url for url in self.urls}
+
+            for future in concurrent.futures.as_completed(future_to_url):
+                url = future_to_url[future]
+                try:
+                    _, paragraphs = future.result()
+                    self.texts_per_url[url] = paragraphs
+                    self.all_paragraphs.extend(paragraphs)
+                except Exception as exc:
+                    print(f'{url} の処理中にエラーが発生しました: {exc}')
+
+        print(f'抽出されたURLの数: {len(self.urls)}')
+        print(f'ユニークなパラグラフの数: {len(self.all_paragraphs)}')
+
+    def remove_similar_paragraphs(self, threshold=0.5):
+        vectorizer = TfidfVectorizer()
+        tfidf_matrix = vectorizer.fit_transform(self.all_paragraphs)
+        cosine_sim_matrix = cosine_similarity(tfidf_matrix)
+
+        to_remove = set()
+        for i in range(len(cosine_sim_matrix)):
+            for j in range(i + 1, len(cosine_sim_matrix)):
+                if cosine_sim_matrix[i, j] > threshold:
+                    to_remove.add(j)
+
+        self.all_paragraphs = [p for i, p in enumerate(self.all_paragraphs) if i not in to_remove]
+        print(f'類似度に基づいて削除されたパラグラフの数: {len(to_remove)}')
+
+    def remove_duplicate_texts(self):
+        """
+        このメソッドでは、全てのパラグラフについて重複を検出し、
+        それらをテキストブロックのリストから削除します。
+        """
+        paragraph_counter = Counter()
+        for paragraphs in self.texts_per_url.values():
+            for paragraph in paragraphs:
+                paragraph_counter[paragraph] += 1
+
+        # 重複しているパラグラフを削除
+        for url, paragraphs in self.texts_per_url.items():
+            self.texts_per_url[url] = [p for p in paragraphs if paragraph_counter[p] == 1]
+
+
+    def create_text_blocks_and_count_chars(self, max_chars=5000):
+        # remove_duplicate_textsメソッドを呼び出して重複を削除
+        self.remove_duplicate_texts()
+
+        text_blocks = []
+        block_id = 1  # ブロックIDを数えるためのカウンタ
+        for url, paragraphs in self.texts_per_url.items():
+            current_block = []
+            current_chars = 0
+            for paragraph in paragraphs:
+                paragraph_len = len(paragraph)
+                if current_chars + paragraph_len > max_chars:
+                    if current_block:
+                        text_blocks.append({
+                            "ID": f"クラスタ{block_id}",
+                            "url": url,
+                            "content": current_block
+                        })
+                        print(f"ID: クラスタ{block_id}, URL: {url}, ブロック文字数: {current_chars}, パラグラフ数: {len(current_block)}")
+                        block_id += 1
+                    current_block = [paragraph]
+                    current_chars = paragraph_len
+                else:
+                    current_block.append(paragraph)
+                    current_chars += paragraph_len
+            if current_block:
+                text_blocks.append({
+                    "ID": f"クラスタ{block_id}",
+                    "url": url,
+                    "content": current_block
+                })
+                print(f"ID: クラスタ{block_id}, URL: {url}, ブロック文字数: {current_chars}, パラグラフ数: {len(current_block)}")
+                block_id += 1
+
+        self.final_blocks = text_blocks
+
+    def save_final_blocks(self, output_file_path='text_blocks.json'):
+        with open(output_file_path, 'w', encoding='utf-8') as f:
+            json.dump(self.final_blocks, f, ensure_ascii=False, indent=2)
+        print(f'テキストブロックが {output_file_path} に保存されました。')
+
+if __name__ == "__main__":
+    app = App('https://xtech.nikkei.com/')
+    app.extract_and_process_texts()
+    app.remove_similar_paragraphs()
+    app.create_text_blocks_and_count_chars()
+    app.save_final_blocks()
