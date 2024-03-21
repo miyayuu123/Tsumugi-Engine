@@ -1,3 +1,5 @@
+
+from flask import Flask, request, jsonify
 from Tagmodule import Tagmodule
 from UrlModule import URLModule
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -8,6 +10,22 @@ import numpy as np
 from collections import Counter
 from urllib.parse import urlparse, urlunparse, quote
 import concurrent.futures
+import threading
+from supabase import create_client, Client
+from dotenv import load_dotenv
+import os
+
+app = Flask(__name__)
+
+# .envファイルから環境変数を読み込む
+load_dotenv()
+
+# 環境変数からSupabaseのURLとキーを取得
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
+# Supabaseクライアントを初期化
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 class App:
     def __init__(self, url, desired_chars_per_cluster=5000):
@@ -130,9 +148,48 @@ class App:
             json.dump(self.final_blocks, f, ensure_ascii=False, indent=2)
         print(f'テキストブロックが {output_file_path} に保存されました。')
 
-if __name__ == "__main__":
-    app = App('https://xtech.nikkei.com/')
-    app.extract_and_process_texts()
-    app.remove_similar_paragraphs()
-    app.create_text_blocks_and_count_chars()
-    app.save_final_blocks()
+def update_model_status_and_insert_result(model_id, result_json):
+        # modelsテーブルのstatusを更新
+        update_response = supabase.table("models").update({"status": "finished"}).eq("id", model_id).execute()
+        # resultテーブルに新しいレコードを挿入
+        insert_response = supabase.table("results").insert({"model_id": model_id, "result": result_json}).execute()
+
+        if update_response.error or insert_response.error:
+            print("データベースの更新または挿入に失敗しました。")
+        else:
+            print("データベースが正常に更新され、結果が挿入されました。")
+
+def background_task(url, desired_chars_per_cluster, model_id):
+    app_instance = App(url, desired_chars_per_cluster)
+    #app_instance.extract_and_process_texts()
+    #app_instance.remove_similar_paragraphs()
+    #app_instance.create_text_blocks_and_count_chars()
+    #app_instance.save_final_blocks()
+
+    # 結果のJSONファイルのパス（またはJSONデータそのもの）
+    result_json_path = "text_blocks.json"
+
+    # JSONファイルからデータを読み込む
+    with open(result_json_path, 'r', encoding='utf-8') as file:
+        result_json = json.load(file)
+
+    # データベースを更新し、結果を挿入
+    update_model_status_and_insert_result(model_id, result_json)
+
+@app.route('/train-model', methods=['POST'])
+def train_model():
+    data = request.json
+    url = data.get('url')
+    model_id = data.get('model_id')
+    user_id = data.get('user_id')
+    desired_chars_per_cluster = data.get('desired_chars_per_cluster', 5000)
+
+    # バックグラウンドタスクをスレッドで実行
+    thread = threading.Thread(target=background_task, args=(url, desired_chars_per_cluster, model_id))
+    thread.start()
+
+    # レスポンスを直ちに返す
+    return jsonify({"message": "Model training initiated"}), 202
+
+if __name__ == '__main__':
+    app.run(debug=True)
