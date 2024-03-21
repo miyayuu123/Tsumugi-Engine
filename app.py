@@ -161,10 +161,10 @@ def update_model_status_and_insert_result(model_id, result_json):
 
 def background_task(url, desired_chars_per_cluster, model_id):
     app_instance = App(url, desired_chars_per_cluster)
-    #app_instance.extract_and_process_texts()
-    #app_instance.remove_similar_paragraphs()
-    #app_instance.create_text_blocks_and_count_chars()
-    #app_instance.save_final_blocks()
+    app_instance.extract_and_process_texts()
+    app_instance.remove_similar_paragraphs()
+    app_instance.create_text_blocks_and_count_chars()
+    app_instance.save_final_blocks()
 
     # 結果のJSONファイルのパス（またはJSONデータそのもの）
     result_json_path = "text_blocks.json"
