@@ -1,6 +1,5 @@
 beautifulsoup4==4.12.3
 Flask==2.2.5
-numpy==1.21.6
 openai==1.14.2
 playwright==1.35.0
 python-dotenv==1.0.1
