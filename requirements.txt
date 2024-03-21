@@ -7,3 +7,4 @@ Requests
 scikit-learn
 supabase
 numpy
+gunicorn
