@@ -26,7 +26,7 @@ class URLModule:
             urllib.request.HTTPSHandler(context=ssl_context)
         )
 
-    def dispatch_url(self, url):
+    def dispatch_url(self, url, structure=None):
         if 'wikipedia' in url:
             return self.get_child_page_urls(url)
         elif 'j-platpat' in url:
@@ -37,15 +37,13 @@ class URLModule:
             if not related_urls:  # related_urlsが空の場合
                 return self.fetch_links_from_js_page(url)
             else:
-                unique_structures = self.identify_unique_structures(related_urls, url)
-
-                # ユーザーに構造を選択してもらう
-                print(unique_structures)
-                # ユーザーが選択したURLの構造を仮定して進める
-                chosen_structure = self.get_user_choice(unique_structures)
-
+                if structure is None:
+                    unique_structures = self.identify_unique_structures(related_urls, url)
+                    print(unique_structures)
+                    chosen_structure = self.get_user_choice(unique_structures)
+                else:
+                    chosen_structure = structure
                 print(chosen_structure)
-                # 選択された構造に基づくURLの再帰的取得
                 return self.crawl_by_structure(url, chosen_structure)
 
     @staticmethod
@@ -119,20 +117,13 @@ class URLModule:
         # 生成した構造の一覧を返す
         return list(unique_structures.values())
 
-    def get_user_choice(self, unique_structures):
-        print("以下のURL構造から選択してください:")
-        for index, structure in enumerate(unique_structures, start=1):
-            print(f"{index}: {structure}")
-
-        try:
-            choice = int(input("選択した構造の番号を入力してください: ")) - 1
-            if 0 <= choice < len(unique_structures):
-                return unique_structures[choice]
-            else:
-                print("無効な選択です。")
-        except ValueError:
-            print("無効な入力です。")
-        return None
+    def get_user_choice(self, unique_structures, user_selection):
+        # user_selectionはクライアントからPOSTされた選択肢のインデックス
+        if 0 <= user_selection < len(unique_structures):
+            return unique_structures[user_selection]
+        else:
+            print("無効な選択です。")
+            return None
 
     def fetch_url(self, url, opener):
         try:
