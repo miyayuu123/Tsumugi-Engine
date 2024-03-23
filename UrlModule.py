@@ -22,9 +22,10 @@ class URLModule:
 
     def build_opener(self, ssl_context):
         return urllib.request.build_opener(
-            urllib.request.ProxyHandler({'http': self.PROXY_SERVER, 'https': self.PROXY_SERVER}),
-            urllib.request.HTTPSHandler(context=ssl_context)
-        )
+        urllib.request.ProxyHandler(
+            {'http': 'http://brd-customer-hl_334d7f0d-zone-unblocker:l04btgzq53bu@brd.superproxy.io:22225',
+            'https': 'http://brd-customer-hl_334d7f0d-zone-unblocker:l04btgzq53bu@brd.superproxy.io:22225'}))
+
 
     def dispatch_url(self, url, structure=None):
         if 'wikipedia' in url:
