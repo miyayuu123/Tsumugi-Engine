@@ -34,6 +34,7 @@ class URLModule:
             return self.inpit_search_from_input_box_sync(url, "AI")
         else:
                 if structure is None:
+
                     return
                 else:
                     chosen_structure = structure
