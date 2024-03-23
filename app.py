@@ -56,7 +56,7 @@ class App:
         encoded_url = urlunparse((scheme, netloc, path, params, query, fragment))
         return encoded_url
 
-    def extract_and_process_texts(self):
+    def extract_and_process_texts(self, structure):
         # ThreadPoolExecutorを使用して並行処理を実行
         self.urls = self.urlmodule.dispatch_url(self.url)
 
@@ -159,9 +159,9 @@ def update_model_status_and_insert_result(model_id, result_json):
         else:
             print("データベースが正常に更新され、結果が挿入されました。")
 
-def background_task(url, desired_chars_per_cluster, model_id):
+def background_task(url, desired_chars_per_cluster, model_id, url_structure):
     app_instance = App(url, desired_chars_per_cluster)
-    app_instance.extract_and_process_texts()
+    app_instance.extract_and_process_texts(url_structure)
     app_instance.remove_similar_paragraphs()
     app_instance.create_text_blocks_and_count_chars()
     app_instance.save_final_blocks()
@@ -181,11 +181,11 @@ def train_model():
     data = request.json
     url = data.get('url')
     model_id = data.get('model_id')
-    user_id = data.get('user_id')
     desired_chars_per_cluster = data.get('desired_chars_per_cluster', 5000)
+    url_structure = data.get('structure')
 
     # バックグラウンドタスクをスレッドで実行
-    thread = threading.Thread(target=background_task, args=(url, desired_chars_per_cluster, model_id))
+    thread = threading.Thread(target=background_task, args=(url, desired_chars_per_cluster, model_id, url_structure))
     thread.start()
 
     # レスポンスを直ちに返す
