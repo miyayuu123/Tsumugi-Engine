@@ -33,9 +33,7 @@ class URLModule:
             return self.inpit_search_from_input_box_sync(url, "AI")
         else:
                 if structure is None:
-                    unique_structures = self.identify_unique_structures(related_urls, url)
-                    print(unique_structures)
-                    chosen_structure = self.get_user_choice(unique_structures)
+                    return
                 else:
                     chosen_structure = structure
                 print(chosen_structure)
