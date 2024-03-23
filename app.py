@@ -58,7 +58,7 @@ class App:
 
     def extract_and_process_texts(self, structure):
         # ThreadPoolExecutorを使用して並行処理を実行
-        self.urls = self.urlmodule.dispatch_url(self.url)
+        self.urls = self.urlmodule.dispatch_url(self.url, structure=structure)
 
         print(f'抽出されたURLの数: {len(self.urls)}')
         print(self.urls)
