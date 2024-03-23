@@ -39,12 +39,6 @@ class URLModule:
                 print(chosen_structure)
                 return self.crawl_by_structure(url, chosen_structure)
 
-    @staticmethod
-    def convert_to_top_page_url(url):
-        """指定されたURLのトップページURLを返します。"""
-        parsed_url = urlparse(url)
-        top_page_url = urlunparse((parsed_url.scheme, parsed_url.netloc, '', '', '', ''))
-        return top_page_url
 
     # get_child_page_urlsメソッドの更新版
     def get_child_page_urls(self, url):
@@ -68,64 +62,6 @@ class URLModule:
                 child_urls.add(full_url)
 
         return child_urls
-
-        # get_related_urlsメソッドの更新版
-    def get_related_urls(self, url):
-        visited = set()  # URLの集合を初期化
-
-        try:
-            ssl_context = ssl.create_default_context(cafile=self.CERT_PATH)
-            opener = self.build_opener(ssl_context)
-            with opener.open(url) as response:
-                html_content = response.read()
-        except Exception as e:
-            logging.error(f"Error occurred while fetching URL: {url}: {e}")
-            return visited  # エラーが発生した場合は、空の集合を返す
-
-        soup = BeautifulSoup(html_content, 'html.parser')
-
-        for link in soup.find_all('a', href=True):
-            href = link['href']
-            absolute_url = urljoin(url, href)  # 相対URLを絶対URLに変換
-            visited.add(absolute_url)  # 絶対URLを集合に追加
-
-        return visited
-
-    def identify_unique_structures(self, urls, base_url):
-        unique_structures = {}
-        for url in urls:
-            # URLがbase_urlで始まるかどうかをチェック
-            if url.startswith(base_url):
-                path = urlparse(url).path
-                # パスを「/」で分割し、最初の2つのセグメントを考慮する（空のセグメントも含む）
-                segments = path.strip("/").split("/")[:2]  # 最初の2つのセグメントを取得
-                if len(segments) == 0:
-                    continue  # セグメントがない場合はスキップ
-                # URL構造を生成（2つのセグメントを含むパス）
-                structure = "/".join(segments)
-                if structure not in unique_structures:
-                    # 完全なURLを保持
-                    unique_structures[structure] = urljoin(base_url, structure)
-
-        # 生成した構造の一覧を返す
-        return list(unique_structures.values())
-
-    def get_user_choice(self, unique_structures, user_selection):
-        # user_selectionはクライアントからPOSTされた選択肢のインデックス
-        if 0 <= user_selection < len(unique_structures):
-            return unique_structures[user_selection]
-        else:
-            print("無効な選択です。")
-            return None
-
-    def fetch_url(self, url, opener):
-        try:
-            with opener.open(url) as response:
-                html_content = response.read()
-                return html_content
-        except Exception as e:
-            print(f"Error fetching {url}: {e}")
-            return None
 
     def crawl_by_structure(self, base_url, chosen_structure, max_urls=100):
         visited = set()
