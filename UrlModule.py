@@ -32,11 +32,6 @@ class URLModule:
         elif 'j-platpat' in url:
             return self.inpit_search_from_input_box_sync(url, "AI")
         else:
-            related_urls = self.get_related_urls(url)
-            print(related_urls)
-            if not related_urls:  # related_urlsが空の場合
-                return self.fetch_links_from_js_page(url)
-            else:
                 if structure is None:
                     unique_structures = self.identify_unique_structures(related_urls, url)
                     print(unique_structures)
