@@ -58,6 +58,7 @@ class App:
 
     def extract_and_process_texts(self, structure):
         # ThreadPoolExecutorを使用して並行処理を実行
+        print("extract_and_process_texts")
         self.urls = self.urlmodule.dispatch_url(self.url, structure=structure)
 
         print(f'抽出されたURLの数: {len(self.urls)}')
@@ -154,10 +155,6 @@ def update_model_status_and_insert_result(model_id, result_json):
         # resultテーブルに新しいレコードを挿入
         insert_response = supabase.table("results").insert({"model_id": model_id, "result": result_json}).execute()
 
-        if update_response.error or insert_response.error:
-            print("データベースの更新または挿入に失敗しました。")
-        else:
-            print("データベースが正常に更新され、結果が挿入されました。")
 
 def background_task(url, desired_chars_per_cluster, model_id, url_structure):
     app_instance = App(url, desired_chars_per_cluster)
