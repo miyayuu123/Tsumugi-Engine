@@ -151,7 +151,7 @@ class App:
 
 def update_model_status_and_insert_result(model_id, result_json):
         # modelsテーブルのstatusを更新
-        update_response = supabase.table("models").update({"status": "finished"}).eq("id", model_id).execute()
+        update_response = supabase.table("models").update({"status": "finished"}).eq("model_id", model_id).execute()
         # resultテーブルに新しいレコードを挿入
         insert_response = supabase.table("results").insert({"model_id": model_id, "result": result_json}).execute()
 
