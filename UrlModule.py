@@ -64,7 +64,7 @@ class URLModule:
         return child_urls
 
 
-    def crawl_by_structure(self, base_url, chosen_structure, max_urls=100):
+    def crawl_by_structure(self, base_url, chosen_structure, max_urls=15):
         visited = set()
         to_visit = [base_url]
         similar_structure_urls = []
