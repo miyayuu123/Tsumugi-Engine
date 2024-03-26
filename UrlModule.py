@@ -12,6 +12,8 @@ import asyncio
 from playwright.async_api import async_playwright
 from playwright.async_api import async_playwright, TimeoutError
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from random import shuffle
+
 
 class URLModule:
     PROXY_SERVER = 'http://brd-customer-hl_334d7f0d-zone-unblocker:l04btgzq53bu@brd.superproxy.io:22225'
@@ -37,34 +39,7 @@ class URLModule:
                     return
                 else:
                     chosen_structure = structure
-                print(chosen_structure)
                 return self.crawl_by_structure(url, chosen_structure, max_urls)
-
-
-    # get_child_page_urlsメソッドの更新版
-    def get_child_page_urls(self, url, max_urls=15):
-        try:
-            ssl_context = ssl.create_default_context(cafile=self.CERT_PATH)
-            opener = self.build_opener(ssl_context)
-            with opener.open(url) as response:
-                html_content = response.read()
-        except Exception as e:
-            logging.error(f"Failed to open URL {url}: {e}")
-            return None
-
-        soup = BeautifulSoup(html_content, 'html.parser')
-        base_url = "{0.scheme}://{0.netloc}".format(urlparse(url))
-        child_urls = set()
-
-        for link in soup.find_all('a', href=True):
-            if len(child_urls) >= max_urls:
-                break  # 最大URL数に達したらループを抜ける
-            href = link['href']
-            full_url = urljoin(base_url, href)
-            if full_url.startswith(base_url):
-                child_urls.add(full_url)
-
-        return child_urls
 
 
     def crawl_by_structure(self, base_url, chosen_structure, max_urls=15):
@@ -94,7 +69,10 @@ class URLModule:
                 print(f"Processing: {current_url}")  # 現在処理しているURLを表示
 
                 soup = BeautifulSoup(html_content, 'html.parser')
-                for link in soup.find_all('a', href=True):
+                links = soup.find_all('a', href=True)
+                shuffle(links)  # リンクのリストをランダムにシャッフル
+
+                for link in links:
                     href = urljoin(current_url, link['href'])
                     # 選択された構造に基づくURLをフィルター
                     if href.startswith(chosen_structure) and href not in visited:

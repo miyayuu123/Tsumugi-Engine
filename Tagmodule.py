@@ -25,7 +25,6 @@ class Tagmodule:
         return opener
 
     def extract_text_without_splitting(self, url):
-        #url="https://ja.wikipedia.org/wiki/%E6%88%A6%E5%9B%BD%E6%99%82%E4%BB%A3_(%E6%97%A5%E6%9C%AC)"
         opener = self.build_opener()
         # オープナーを使用してリクエストを実行
         with opener.open(url) as response:
@@ -69,14 +68,13 @@ class Tagmodule:
                 # 条件に合う場合はその文言を除いたテキストを返す
                 return complete_text.replace("出典: フリー百科事典『ウィキペディア』", "").strip(), page_title
         # テキストとタイトルを返す
-        print(complete_text)
         return complete_text, page_title
 
     def extract_sentences(self, text, min_length=10):
         pattern = r'[^。]+[。]'
         sentences = re.findall(pattern, text)
         sentences_filtered = []
-        exclusion_keywords = ["詳細は", "脚注", "注釈", "出典", "参考文献", "関連項目", "ロンドル", "ウィキペディア", "ウィキメディア"]
+        exclusion_keywords = ["詳細は", "脚注", "注釈", "出典", "参考文献", "関連項目", "ロンドル", "ウィキペディア", "ウィキメディア", "javascript", "JavaScript"]
 
         # 漢字が7回以上連続しているパターン
         kanji_sequence_pattern = re.compile(r'[\u4e00-\u9faf\u3400-\u4dbf]{7,}')
@@ -120,7 +118,13 @@ class Tagmodule:
             if temp_paragraph:
                 pass
 
-        return meaningful_paragraphs
+        processed_paragraphs = []
+        for paragraph in meaningful_paragraphs:
+            sentences = self.extract_sentences(paragraph)
+            processed_paragraph = ' '.join(sentences)
+            processed_paragraphs.append(processed_paragraph)
+        return processed_paragraphs
+
 
 
 if __name__ == "__main__":

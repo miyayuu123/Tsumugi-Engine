@@ -36,6 +36,7 @@ class App:
         self.texts_per_url = {}
         self.all_paragraphs = []
         self.removed_paragraphs = []  # 削除されたパラグラフを追跡
+        self.retry_count = 0
 
     def extract_text_for_url(self, url):
         # Tagmoduleのインスタンスを作成
@@ -146,9 +147,26 @@ class App:
         self.final_blocks = text_blocks
 
     def save_final_blocks(self, output_file_path='text_blocks.json'):
-        with open(output_file_path, 'w', encoding='utf-8') as f:
-            json.dump(self.final_blocks, f, ensure_ascii=False, indent=2)
-        print(f'テキストブロックが {output_file_path} に保存されました。')
+        # JavaScriptが含まれるテキストブロックの数をカウント
+        js_count = sum(1 for block in self.final_blocks if 'JavaScript' in ' '.join(block['content']))
+        # 全体のテキストブロックに占めるJavaScriptが含まれるブロックの割合を計算
+        js_ratio = js_count / len(self.final_blocks) if self.final_blocks else 0
+        # 総合文字数を計算
+        total_chars = sum(len(' '.join(block['content'])) for block in self.final_blocks)
+
+        # JavaScriptが含まれるブロックの割合が50%を超え、かつ総合文字数が500文字以下の場合、再取得する
+        if js_ratio > 0.5 and total_chars <= 500:
+            if self.retry_count < 3:  # 再取得の試行回数に制限を設ける
+                print("取得した結果の大半がJavaScriptを含んでいる、または総合文字数が500文字以下のため、再取得します。")
+                self.retry_count += 1  # 試行回数をインクリメント
+                self.extract_and_process_texts(self.url_structure)  # 再取得処理のメソッド呼び出し
+            else:
+                print("再取得の試行回数が上限に達しました。")
+        else:
+            # 条件を満たさない場合、通常通りにファイルに保存
+            with open(output_file_path, 'w', encoding='utf-8') as f:
+                json.dump(self.final_blocks, f, ensure_ascii=False, indent=2)
+            print(f'テキストブロックが {output_file_path} に保存されました。')
 
 def update_model_status_and_insert_result(model_id, result_json):
         # modelsテーブルのstatusを更新
@@ -195,11 +213,11 @@ if __name__ == '__main__':
 
 #if __name__ == '__main__':
     # テスト用のURLとパラメータを設定
- #   test_url = "https://xtech.nikkei.com/"
- #   desired_chars_per_cluster = 5000
- #   model_id = "test_model_1"
- #   url_structure = "https://xtech.nikkei.com/atcl/nxt"
+#    test_url = "https://inu-llc.co.jp/"
+#    desired_chars_per_cluster = 5000
+#    model_id = "test_model_1"
+#    url_structure = "https://inu-llc.co.jp/"
 
     # background_task関数を直接呼び出して処理を実行
- #   background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
+#   background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
 #
