@@ -193,7 +193,7 @@ if __name__ == '__main__':
    app.run(debug=True)
 
 
-i#f __name__ == '__main__':
+#if __name__ == '__main__':
     # テスト用のURLとパラメータを設定
  #   test_url = "https://xtech.nikkei.com/"
  #   desired_chars_per_cluster = 5000
