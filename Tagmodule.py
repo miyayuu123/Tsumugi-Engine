@@ -11,8 +11,6 @@ class Tagmodule:
     def __init__(self):
         # SSLコンテキストの作成
         self.ssl_context = ssl.create_default_context(cafile=self.CERT_PATH)
-        self.ssl_context.check_hostname = False
-        self.ssl_context.verify_mode = ssl.CERT_NONE
 
     def build_opener(self):
         # プロキシハンドラーとHTTPSハンドラーを設定
@@ -25,7 +23,9 @@ class Tagmodule:
         # オープナーの作成
         opener = urllib.request.build_opener(proxy_handler, https_handler)
         return opener
+
     def extract_text_without_splitting(self, url):
+        #url="https://ja.wikipedia.org/wiki/%E6%88%A6%E5%9B%BD%E6%99%82%E4%BB%A3_(%E6%97%A5%E6%9C%AC)"
         opener = self.build_opener()
         # オープナーを使用してリクエストを実行
         with opener.open(url) as response:
@@ -69,6 +69,7 @@ class Tagmodule:
                 # 条件に合う場合はその文言を除いたテキストを返す
                 return complete_text.replace("出典: フリー百科事典『ウィキペディア』", "").strip(), page_title
         # テキストとタイトルを返す
+        print(complete_text)
         return complete_text, page_title
 
     def extract_sentences(self, text, min_length=10):
@@ -124,7 +125,7 @@ class Tagmodule:
 
 if __name__ == "__main__":
     # ここでテストしたいURLを設定します
-    test_url = "https://business.nikkei.com/"
+    test_url = "https://ja.wikipedia.org/wiki/%E6%88%A6%E5%9B%BD%E6%99%82%E4%BB%A3_(%E6%97%A5%E6%9C%AC)"
     tagmodule = Tagmodule()
     text, title = tagmodule.extract_text_without_splitting(test_url)
     paragraphs = tagmodule.extract_paragraphs(text)

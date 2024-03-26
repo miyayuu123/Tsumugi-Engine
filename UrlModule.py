@@ -26,9 +26,10 @@ class URLModule:
             urllib.request.HTTPSHandler(context=ssl_context)
         )
 
-    def dispatch_url(self, url, structure=None):
+    def dispatch_url(self, url, structure=None, max_urls=150):
         if 'wikipedia' in url:
-            return self.get_child_page_urls(url)
+            chosen_structure = "https://ja.wikipedia.org/wiki/"
+            return self.crawl_by_structure(url, chosen_structure, max_urls)
         elif 'j-platpat' in url:
             return self.inpit_search_from_input_box_sync(url, "AI")
         else:
@@ -37,11 +38,11 @@ class URLModule:
                 else:
                     chosen_structure = structure
                 print(chosen_structure)
-                return self.crawl_by_structure(url, chosen_structure)
+                return self.crawl_by_structure(url, chosen_structure, max_urls)
 
 
     # get_child_page_urlsメソッドの更新版
-    def get_child_page_urls(self, url):
+    def get_child_page_urls(self, url, max_urls=15):
         try:
             ssl_context = ssl.create_default_context(cafile=self.CERT_PATH)
             opener = self.build_opener(ssl_context)
@@ -56,6 +57,8 @@ class URLModule:
         child_urls = set()
 
         for link in soup.find_all('a', href=True):
+            if len(child_urls) >= max_urls:
+                break  # 最大URL数に達したらループを抜ける
             href = link['href']
             full_url = urljoin(base_url, href)
             if full_url.startswith(base_url):

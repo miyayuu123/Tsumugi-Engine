@@ -1,4 +1,3 @@
-
 from flask import Flask, request, jsonify
 from Tagmodule import Tagmodule
 from UrlModule import URLModule
@@ -48,24 +47,26 @@ class App:
 
     def encode_url(self, url):
         # URLをコンポーネントに分割
-        scheme, netloc, path, params, query, fragment = urlparse(url)
-        # パスとクエリをエンコード
-        path = quote(path)
-        query = quote(query)
-        # エンコードされたURLを再構築
-        encoded_url = urlunparse((scheme, netloc, path, params, query, fragment))
-        return encoded_url
+
+        return url
 
     def extract_and_process_texts(self, structure):
         # ThreadPoolExecutorを使用して並行処理を実行
         print("extract_and_process_texts")
-        self.urls = self.urlmodule.dispatch_url(self.url, structure=structure)
+        self.urls = self.urlmodule.dispatch_url(self.url, structure=structure, max_urls=15)
+        # エンコードされたURLを保持するための新しいリスト
+        encoded_urls = []
 
-        print(f'抽出されたURLの数: {len(self.urls)}')
-        print(self.urls)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-            # URLごとにextract_text_for_url関数を実行
-            future_to_url = {executor.submit(self.extract_text_for_url, self.encode_url(url)): url for url in self.urls}
+        # 各URLをエンコードして新しいリストに追加
+        for url in self.urls:
+            encoded_url = self.encode_url(url)
+            encoded_urls.append(encoded_url)
+
+        print(f'抽出されたURLの数: {len(encoded_urls)}')
+        print(encoded_urls)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=40) as executor:
+            # エンコードされたURLリストを使用して処理を実行
+            future_to_url = {executor.submit(self.extract_text_for_url, url): url for url in encoded_urls}
 
             for future in concurrent.futures.as_completed(future_to_url):
                 url = future_to_url[future]
@@ -76,7 +77,7 @@ class App:
                 except Exception as exc:
                     print(f'{url} の処理中にエラーが発生しました: {exc}')
 
-        print(f'抽出されたURLの数: {len(self.urls)}')
+        print(f'抽出されたURLの数: {len(encoded_urls)}')
         print(f'ユニークなパラグラフの数: {len(self.all_paragraphs)}')
 
     def remove_similar_paragraphs(self, threshold=0.5):
@@ -189,4 +190,16 @@ def train_model():
     return jsonify({"message": "Model training initiated"}), 202
 
 if __name__ == '__main__':
-    app.run(debug=True)
+   app.run(debug=True)
+
+
+i#f __name__ == '__main__':
+    # テスト用のURLとパラメータを設定
+ #   test_url = "https://xtech.nikkei.com/"
+ #   desired_chars_per_cluster = 5000
+ #   model_id = "test_model_1"
+ #   url_structure = "https://xtech.nikkei.com/atcl/nxt"
+
+    # background_task関数を直接呼び出して処理を実行
+ #   background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
+#
