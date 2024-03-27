@@ -27,16 +27,20 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 class App:
-    def __init__(self, url, desired_chars_per_cluster=5000):
+    def __init__(self, url, desired_chars_per_cluster=5000, url_structure=None):
         self.urlmodule = URLModule("q")
         self.tagmodule = Tagmodule()
         self.url = url
         self.desired_chars_per_cluster = desired_chars_per_cluster
         self.urls = []
         self.texts_per_url = {}
+        self.final_texts_per_url = {}
         self.all_paragraphs = []
         self.removed_paragraphs = []  # 削除されたパラグラフを追跡
         self.retry_count = 0
+        self.final_blocks = []
+        self.max_urls = 10
+        self.url_structure = url_structure
 
     def extract_text_for_url(self, url):
         # Tagmoduleのインスタンスを作成
@@ -54,7 +58,7 @@ class App:
     def extract_and_process_texts(self, structure):
         # ThreadPoolExecutorを使用して並行処理を実行
         print("extract_and_process_texts")
-        self.urls = self.urlmodule.dispatch_url(self.url, structure=structure, max_urls=15)
+        self.urls = self.urlmodule.dispatch_url(self.url, structure=structure, max_urls=self.max_urls)
         # エンコードされたURLを保持するための新しいリスト
         encoded_urls = []
 
@@ -78,22 +82,32 @@ class App:
                 except Exception as exc:
                     print(f'{url} の処理中にエラーが発生しました: {exc}')
 
+        # texts_per_urlの内容をfinal_texts_per_urlに統合
+        for url, paragraphs in self.texts_per_url.items():
+            if url in self.final_texts_per_url:
+                self.final_texts_per_url[url].extend(paragraphs)
+            else:
+                self.final_texts_per_url[url] = paragraphs
+
         print(f'抽出されたURLの数: {len(encoded_urls)}')
         print(f'ユニークなパラグラフの数: {len(self.all_paragraphs)}')
 
     def remove_similar_paragraphs(self, threshold=0.5):
-        vectorizer = TfidfVectorizer()
-        tfidf_matrix = vectorizer.fit_transform(self.all_paragraphs)
-        cosine_sim_matrix = cosine_similarity(tfidf_matrix)
+        try:
+            vectorizer = TfidfVectorizer()
+            tfidf_matrix = vectorizer.fit_transform(self.all_paragraphs)
+            cosine_sim_matrix = cosine_similarity(tfidf_matrix)
 
-        to_remove = set()
-        for i in range(len(cosine_sim_matrix)):
-            for j in range(i + 1, len(cosine_sim_matrix)):
-                if cosine_sim_matrix[i, j] > threshold:
-                    to_remove.add(j)
+            to_remove = set()
+            for i in range(len(cosine_sim_matrix)):
+                for j in range(i + 1, len(cosine_sim_matrix)):
+                    if cosine_sim_matrix[i, j] > threshold:
+                        to_remove.add(j)
 
-        self.all_paragraphs = [p for i, p in enumerate(self.all_paragraphs) if i not in to_remove]
-        print(f'類似度に基づいて削除されたパラグラフの数: {len(to_remove)}')
+            self.all_paragraphs = [p for i, p in enumerate(self.all_paragraphs) if i not in to_remove]
+            print(f'類似度に基づいて削除されたパラグラフの数: {len(to_remove)}')
+        except ValueError as e:
+            print(f"エラーが発生しましたが、処理を続行します: {e}")
 
     def remove_duplicate_texts(self):
         """
@@ -101,13 +115,13 @@ class App:
         それらをテキストブロックのリストから削除します。
         """
         paragraph_counter = Counter()
-        for paragraphs in self.texts_per_url.values():
+        for paragraphs in self.final_texts_per_url.values():
             for paragraph in paragraphs:
                 paragraph_counter[paragraph] += 1
 
         # 重複しているパラグラフを削除
-        for url, paragraphs in self.texts_per_url.items():
-            self.texts_per_url[url] = [p for p in paragraphs if paragraph_counter[p] == 1]
+        for url, paragraphs in self.final_texts_per_url.items():
+            self.final_texts_per_url[url] = [p for p in paragraphs if paragraph_counter[p] == 1]
 
 
     def create_text_blocks_and_count_chars(self, max_chars=5000):
@@ -116,7 +130,7 @@ class App:
 
         text_blocks = []
         block_id = 1  # ブロックIDを数えるためのカウンタ
-        for url, paragraphs in self.texts_per_url.items():
+        for url, paragraphs in self.final_texts_per_url.items():
             current_block = []
             current_chars = 0
             for paragraph in paragraphs:
@@ -135,7 +149,7 @@ class App:
                 else:
                     current_block.append(paragraph)
                     current_chars += paragraph_len
-            if current_block:
+            if current_block and current_chars > self.desired_chars_per_cluster / 10:
                 text_blocks.append({
                     "ID": f"クラスタ{block_id}",
                     "url": url,
@@ -144,53 +158,68 @@ class App:
                 print(f"ID: クラスタ{block_id}, URL: {url}, ブロック文字数: {current_chars}, パラグラフ数: {len(current_block)}")
                 block_id += 1
 
-        self.final_blocks = text_blocks
+        self.final_blocks.extend(text_blocks)
 
-    def save_final_blocks(self, output_file_path='text_blocks.json'):
+    def save_final_blocks(self, model_id, output_file_path='text_blocks.json'):
         # JavaScriptが含まれるテキストブロックの数をカウント
         js_count = sum(1 for block in self.final_blocks if 'JavaScript' in ' '.join(block['content']))
-        # 全体のテキストブロックに占めるJavaScriptが含まれるブロックの割合を計算
         js_ratio = js_count / len(self.final_blocks) if self.final_blocks else 0
-        # 総合文字数を計算
         total_chars = sum(len(' '.join(block['content'])) for block in self.final_blocks)
 
         # JavaScriptが含まれるブロックの割合が50%を超え、かつ総合文字数が500文字以下の場合、再取得する
         if js_ratio > 0.5 and total_chars <= 500:
-            if self.retry_count < 3:  # 再取得の試行回数に制限を設ける
+            if self.retry_count < 3:  # 無料版は、再取得の試行回数に制限を設ける
                 print("取得した結果の大半がJavaScriptを含んでいる、または総合文字数が500文字以下のため、再取得します。")
                 self.retry_count += 1  # 試行回数をインクリメント
-                self.extract_and_process_texts(self.url_structure)  # 再取得処理のメソッド呼び出し
+                self.final_blocks = []
+                self.extract_and_process_texts(self.url_structure)
+                self.remove_similar_paragraphs()
+                self.create_text_blocks_and_count_chars()
+                self.save_final_blocks(model_id)
             else:
                 print("再取得の試行回数が上限に達しました。")
+                with open(output_file_path, 'w', encoding='utf-8') as f:
+                    json.dump(self.final_blocks, f, ensure_ascii=False, indent=2)
+                print(f'テキストブロックが {output_file_path} に保存されました。')
+                self.update_model_status_and_insert_result(model_id, self.final_blocks)
+        elif len(self.final_blocks) <= self.max_urls / 2:
+            if self.retry_count < 3:
+                print("最終的なテキストブロック数が指定したmax_urlsの2分の1以下です。追加で取得します。")
+                self.retry_count += 1  # 再取得のためにリトライカウントをリセット
+                additional_max_urls = self.max_urls - len(self.final_blocks)
+                self.final_blocks = []
+                self.max_urls = additional_max_urls
+                self.urls = []  # URLリストをリセット
+                self.extract_and_process_texts(self.url_structure)
+                self.remove_similar_paragraphs()
+                self.create_text_blocks_and_count_chars()
+                self.save_final_blocks(model_id)
+            else:
+                with open(output_file_path, 'w', encoding='utf-8') as f:
+                    json.dump(self.final_blocks, f, ensure_ascii=False, indent=2)
+                print(f'テキストブロックが {output_file_path} に保存されました。')
+                self.update_model_status_and_insert_result(model_id, self.final_blocks)
         else:
             # 条件を満たさない場合、通常通りにファイルに保存
             with open(output_file_path, 'w', encoding='utf-8') as f:
                 json.dump(self.final_blocks, f, ensure_ascii=False, indent=2)
             print(f'テキストブロックが {output_file_path} に保存されました。')
+            self.update_model_status_and_insert_result(model_id, self.final_blocks)
 
-def update_model_status_and_insert_result(model_id, result_json):
-        # modelsテーブルのstatusを更新
-        update_response = supabase.table("models").update({"status": "finished"}).eq("model_id", model_id).execute()
-        # resultテーブルに新しいレコードを挿入
-        insert_response = supabase.table("results").insert({"model_id": model_id, "result": result_json}).execute()
+    def update_model_status_and_insert_result(self, model_id, result_json):
+
+            # modelsテーブルのstatusを更新
+            update_response = supabase.table("models").update({"status": "finished"}).eq("model_id", model_id).execute()
+            # resultテーブルに新しいレコードを挿入
+            insert_response = supabase.table("results").insert({"model_id": model_id, "result": result_json}).execute()
 
 
 def background_task(url, desired_chars_per_cluster, model_id, url_structure):
-    app_instance = App(url, desired_chars_per_cluster)
+    app_instance = App(url, desired_chars_per_cluster, url_structure)  # url_structureを渡す
     app_instance.extract_and_process_texts(url_structure)
     app_instance.remove_similar_paragraphs()
     app_instance.create_text_blocks_and_count_chars()
-    app_instance.save_final_blocks()
-
-    # 結果のJSONファイルのパス（またはJSONデータそのもの）
-    result_json_path = "text_blocks.json"
-
-    # JSONファイルからデータを読み込む
-    with open(result_json_path, 'r', encoding='utf-8') as file:
-        result_json = json.load(file)
-
-    # データベースを更新し、結果を挿入
-    update_model_status_and_insert_result(model_id, result_json)
+    app_instance.save_final_blocks(model_id)
 
 @app.route('/train-model', methods=['POST'])
 def train_model():
@@ -213,11 +242,10 @@ if __name__ == '__main__':
 
 #if __name__ == '__main__':
     # テスト用のURLとパラメータを設定
-#    test_url = "https://inu-llc.co.jp/"
-#    desired_chars_per_cluster = 5000
-#    model_id = "test_model_1"
-#    url_structure = "https://inu-llc.co.jp/"
+ #   test_url = "https://xtech.nikkei.com/"
+ #   desired_chars_per_cluster = 5000
+ #   model_id = "test_model_1"
+ #   url_structure = "https://xtech.nikkei.com/atcl/nxt/"
 
     # background_task関数を直接呼び出して処理を実行
-#   background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
-#
+ #   background_task(test_url, desired_chars_per_cluster, model_id, url_structure)

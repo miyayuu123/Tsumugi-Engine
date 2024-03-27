@@ -91,32 +91,43 @@ class Tagmodule:
 
 
     def extract_paragraphs(self, text):
-        paragraphs = text.split('\n')  # 改行でテキストを分割してパラグラフを取得
-        meaningful_paragraphs = []
+        # 改行でテキストを分割してパラグラフを取得
+        paragraphs = text.split('\n')
+        pre_processed_paragraphs = []
 
-        temp_paragraph = ""  # 一時的にパラグラフを保持する変数
+        # まず、長すぎるパラグラフを分割
         for paragraph in paragraphs:
             cleaned_paragraph = paragraph.strip()
-            if '。' in cleaned_paragraph:
+            if len(cleaned_paragraph) > len(text) / 5:
+                pre_processed_paragraphs.extend(self.split_long_paragraph(cleaned_paragraph))
+            else:
+                pre_processed_paragraphs.append(cleaned_paragraph)
+
+        meaningful_paragraphs = []
+        temp_paragraph = ""  # 一時的にパラグラフを保持する変数
+
+        # 分割後のパラグラフに対して既存の処理を適用
+        for paragraph in pre_processed_paragraphs:
+            if '。' in paragraph:
                 if temp_paragraph and not temp_paragraph.endswith('。'):
-                    # 一時的なパラグラフが「。」で終わっていない場合は、現在のパラグラフと結合
-                    temp_paragraph += cleaned_paragraph
+                    temp_paragraph += paragraph
                     if temp_paragraph.endswith('。'):
-                        # 結合後に「。」で終わっていれば、追加して一時的なパラグラフをクリア
                         meaningful_paragraphs.append(temp_paragraph)
                         temp_paragraph = ""
                 else:
-                    # 一時的なパラグラフが空、または既に「。」で終わっている場合
-                    temp_paragraph = cleaned_paragraph  # 現在のパラグラフを一時的なパラグラフとして設定
-
-                    # 現在のパラグラフが「。」で終わっていれば、すぐに追加
-                    if cleaned_paragraph.endswith('。'):
+                    temp_paragraph = paragraph
+                    if paragraph.endswith('。'):
                         meaningful_paragraphs.append(temp_paragraph)
-                        temp_paragraph = ""  # 追加後はクリア
+                        temp_paragraph = ""
+            else:
+                if temp_paragraph:
+                    meaningful_paragraphs.append(temp_paragraph + paragraph)
+                    temp_paragraph = ""
+                else:
+                    meaningful_paragraphs.append(paragraph)
 
-            # 文章の最後が「。」で終わっていない場合の処理
-            if temp_paragraph:
-                pass
+        if temp_paragraph:  # 残りのパラグラフを追加
+            meaningful_paragraphs.append(temp_paragraph)
 
         processed_paragraphs = []
         for paragraph in meaningful_paragraphs:
@@ -125,6 +136,28 @@ class Tagmodule:
             processed_paragraphs.append(processed_paragraph)
         return processed_paragraphs
 
+    def split_long_paragraph(self, paragraph):
+        # 「。」で終わる文で分割する
+        sentences = re.split(r'(?<=。)', paragraph)
+        split_paragraphs = []
+        temp_paragraph = ""
+
+        for sentence in sentences:
+            if temp_paragraph and not temp_paragraph.endswith('。'):
+                temp_paragraph += sentence
+                if sentence.endswith('。'):
+                    split_paragraphs.append(temp_paragraph)
+                    temp_paragraph = ""
+            else:
+                temp_paragraph = sentence
+                if sentence.endswith('。'):
+                    split_paragraphs.append(temp_paragraph)
+                    temp_paragraph = ""
+
+        if temp_paragraph:  # 残りのパラグラフを追加
+            split_paragraphs.append(temp_paragraph)
+
+        return split_paragraphs
 
 
 if __name__ == "__main__":

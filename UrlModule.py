@@ -28,21 +28,29 @@ class URLModule:
             urllib.request.HTTPSHandler(context=ssl_context)
         )
 
-    def dispatch_url(self, url, structure=None, max_urls=150):
+    def dispatch_url(self, url, structure=None, max_urls=10):
+        print(url)
+        print("come")
         if 'wikipedia' in url:
             chosen_structure = "https://ja.wikipedia.org/wiki/"
             return self.crawl_by_structure(url, chosen_structure, max_urls)
         elif 'j-platpat' in url:
             return self.inpit_search_from_input_box_sync(url, "AI")
         else:
-                if structure is None:
-                    return
+            if structure is None:
+                return
+            else:
+                chosen_structure = structure
+                # JavaScriptを使用してクロールするメソッドの結果を取得
+                result_with_js = self.crawl_by_structure_with_js_sync(url, chosen_structure, max_urls)
+                # 結果が何もなかった場合、JavaScriptを使用しないメソッドでクロール
+                if not result_with_js:
+                    return self.crawl_by_structure(url, chosen_structure, max_urls)
                 else:
-                    chosen_structure = structure
-                return self.crawl_by_structure(url, chosen_structure, max_urls)
+                    return result_with_js
 
-
-    def crawl_by_structure(self, base_url, chosen_structure, max_urls=15):
+    def crawl_by_structure(self, base_url, chosen_structure, max_urls=10):
+        print(base_url, chosen_structure)
         visited = set()
         to_visit = [base_url]
         similar_structure_urls = []
@@ -66,8 +74,6 @@ class URLModule:
                     print(f"Error fetching {current_url}: {e}")
                     continue
 
-                print(f"Processing: {current_url}")  # 現在処理しているURLを表示
-
                 soup = BeautifulSoup(html_content, 'html.parser')
                 links = soup.find_all('a', href=True)
                 shuffle(links)  # リンクのリストをランダムにシャッフル
@@ -76,7 +82,6 @@ class URLModule:
                     href = urljoin(current_url, link['href'])
                     # 選択された構造に基づくURLをフィルター
                     if href.startswith(chosen_structure) and href not in visited:
-                        print(f"Found matching link: {href}")
                         similar_structure_urls.append(href)
                         to_visit.append(href)
                         url_count += 1  # カウンターをインクリメント
@@ -87,6 +92,56 @@ class URLModule:
                             break
 
         return similar_structure_urls
+
+    async def crawl_by_structure_with_js(self, base_url, chosen_structure, max_urls=10):
+        visited = set()
+        to_visit = [base_url]
+        similar_structure_urls = []
+
+        async with async_playwright() as pw:
+            browser = await pw.chromium.connect_over_cdp(self.SBR_WS_CDP)
+            try:
+                page = await browser.new_page()
+
+                # 取得したURLの数をカウントする
+                url_count = 0
+
+                while to_visit and url_count < max_urls:
+                    current_url = to_visit.pop()
+                    if current_url not in visited:
+                        visited.add(current_url)
+
+                        try:
+                            await page.goto(current_url, wait_until='networkidle')
+                            html_content = await page.content()
+                        except Exception as e:
+                            print(f"Error fetching {current_url}: {e}")
+                            continue
+
+                        soup = BeautifulSoup(html_content, 'html.parser')
+                        links = soup.find_all('a', href=True)
+                        shuffle(links)  # リンクのリストをランダムにシャッフル
+
+                        for link in links:
+                            href = urljoin(current_url, link['href'])
+                            # 選択された構造に基づくURLをフィルター
+                            if href.startswith(chosen_structure) and href not in visited:
+                                similar_structure_urls.append(href)
+                                to_visit.append(href)
+                                url_count += 1  # カウンターをインクリメント
+
+                                # 最大URL数に達した場合、ループを抜ける
+                                if url_count >= max_urls:
+                                    print(f"Reached the maximum number of URLs: {max_urls}")
+                                    break
+            finally:
+                await browser.close()
+
+        return similar_structure_urls
+
+    # 同期コードから非同期メソッドを呼び出すためのメソッド
+    def crawl_by_structure_with_js_sync(self, base_url, chosen_structure, max_urls=10):
+        return asyncio.run(self.crawl_by_structure_with_js(base_url, chosen_structure, max_urls))
 
     async def get_links_from_js_page(self, url):
         visited = set()  # 取得したURLの集合を初期化
