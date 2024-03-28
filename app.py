@@ -236,8 +236,8 @@ def train_model():
     # レスポンスを直ちに返す
     return jsonify({"message": "Model training initiated"}), 202
 
-#if __name__ == '__main__':
-#   app.run(debug=True)
+if __name__ == '__main__':
+   app.run(debug=True)
 
 
 #if __name__ == '__main__':
