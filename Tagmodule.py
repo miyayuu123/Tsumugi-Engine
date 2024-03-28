@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup, NavigableString
 import re
 import os
 import ssl
+import langdetect
 
 class Tagmodule:
     PROXY_SERVER = 'http://brd-customer-hl_334d7f0d-zone-unblocker:l04btgzq53bu@brd.superproxy.io:22225'
@@ -23,6 +24,12 @@ class Tagmodule:
         # オープナーの作成
         opener = urllib.request.build_opener(proxy_handler, https_handler)
         return opener
+
+    def detect_language(self, text):
+        try:
+            return langdetect.detect(text)
+        except langdetect.lang_detect_exception.LangDetectException:
+            return "unknown"
 
     def extract_text_without_splitting(self, url):
         opener = self.build_opener()
@@ -71,7 +78,11 @@ class Tagmodule:
         return complete_text, page_title
 
     def extract_sentences(self, text, min_length=10):
-        pattern = r'[^。]+[。]'
+        lang = self.detect_language(text)
+        if lang == "en":
+            pattern = r'[^.]+[.]'
+        else:
+            pattern = r'[^。]+[。]'
         sentences = re.findall(pattern, text)
         sentences_filtered = []
         exclusion_keywords = ["詳細は", "脚注", "注釈", "出典", "参考文献", "関連項目", "ロンドル", "ウィキペディア", "ウィキメディア", "javascript", "JavaScript"]
@@ -91,40 +102,61 @@ class Tagmodule:
 
 
     def extract_paragraphs(self, text):
+        lang = self.detect_language(text)
         # 改行でテキストを分割してパラグラフを取得
         paragraphs = text.split('\n')
         pre_processed_paragraphs = []
 
-        # まず、長すぎるパラグラフを分割
         for paragraph in paragraphs:
             cleaned_paragraph = paragraph.strip()
-            if len(cleaned_paragraph) > len(text) / 5:
-                pre_processed_paragraphs.extend(self.split_long_paragraph(cleaned_paragraph))
+            if lang == "en":
+                if len(cleaned_paragraph) > len(text) / 5:
+                    pre_processed_paragraphs.extend(self.split_long_paragraph(cleaned_paragraph, lang))
             else:
-                pre_processed_paragraphs.append(cleaned_paragraph)
+                if len(cleaned_paragraph) > len(text) / 5:
+                    pre_processed_paragraphs.extend(self.split_long_paragraph(cleaned_paragraph, lang))
 
         meaningful_paragraphs = []
         temp_paragraph = ""  # 一時的にパラグラフを保持する変数
 
         # 分割後のパラグラフに対して既存の処理を適用
         for paragraph in pre_processed_paragraphs:
-            if '。' in paragraph:
-                if temp_paragraph and not temp_paragraph.endswith('。'):
-                    temp_paragraph += paragraph
-                    if temp_paragraph.endswith('。'):
-                        meaningful_paragraphs.append(temp_paragraph)
-                        temp_paragraph = ""
+            if lang == "en":
+                if '.' in paragraph:
+                    if temp_paragraph and not temp_paragraph.endswith('.'):
+                        temp_paragraph += paragraph
+                        if temp_paragraph.endswith('.'):
+                            meaningful_paragraphs.append(temp_paragraph)
+                            temp_paragraph = ""
+                    else:
+                        temp_paragraph = paragraph
+                        if paragraph.endswith('.'):
+                            meaningful_paragraphs.append(temp_paragraph)
+                            temp_paragraph = ""
                 else:
-                    temp_paragraph = paragraph
-                    if paragraph.endswith('。'):
-                        meaningful_paragraphs.append(temp_paragraph)
+                    if temp_paragraph:
+                        meaningful_paragraphs.append(temp_paragraph + paragraph)
                         temp_paragraph = ""
+                    else:
+                        meaningful_paragraphs.append(paragraph)
             else:
-                if temp_paragraph:
-                    meaningful_paragraphs.append(temp_paragraph + paragraph)
-                    temp_paragraph = ""
+                if '。' in paragraph:
+                    if temp_paragraph and not temp_paragraph.endswith('。'):
+                        temp_paragraph += paragraph
+                        if temp_paragraph.endswith('。'):
+                            meaningful_paragraphs.append(temp_paragraph)
+                            temp_paragraph = ""
+                    else:
+                        temp_paragraph = paragraph
+                        if paragraph.endswith('。'):
+                            meaningful_paragraphs.append(temp_paragraph)
+                            temp_paragraph = ""
                 else:
-                    meaningful_paragraphs.append(paragraph)
+                    if temp_paragraph:
+                        meaningful_paragraphs.append(temp_paragraph + paragraph)
+                        temp_paragraph = ""
+                    else:
+                        meaningful_paragraphs.append(paragraph)
 
         if temp_paragraph:  # 残りのパラグラフを追加
             meaningful_paragraphs.append(temp_paragraph)
@@ -136,23 +168,37 @@ class Tagmodule:
             processed_paragraphs.append(processed_paragraph)
         return processed_paragraphs
 
-    def split_long_paragraph(self, paragraph):
-        # 「。」で終わる文で分割する
-        sentences = re.split(r'(?<=。)', paragraph)
+    def split_long_paragraph(self, paragraph, lang="unknown"):
+        if lang == "en":
+            sentences = re.split(r'(?<=\.)', paragraph)
+        else:
+            sentences = re.split(r'(?<=。)', paragraph)
         split_paragraphs = []
         temp_paragraph = ""
 
         for sentence in sentences:
-            if temp_paragraph and not temp_paragraph.endswith('。'):
-                temp_paragraph += sentence
-                if sentence.endswith('。'):
-                    split_paragraphs.append(temp_paragraph)
-                    temp_paragraph = ""
+            if lang == "en":
+                if temp_paragraph and not temp_paragraph.endswith('.'):
+                    temp_paragraph += sentence
+                    if sentence.endswith('.'):
+                        split_paragraphs.append(temp_paragraph)
+                        temp_paragraph = ""
+                else:
+                    temp_paragraph = sentence
+                    if sentence.endswith('.'):
+                        split_paragraphs.append(temp_paragraph)
+                        temp_paragraph = ""
             else:
-                temp_paragraph = sentence
-                if sentence.endswith('。'):
-                    split_paragraphs.append(temp_paragraph)
-                    temp_paragraph = ""
+                if temp_paragraph and not temp_paragraph.endswith('。'):
+                    temp_paragraph += sentence
+                    if sentence.endswith('。'):
+                        split_paragraphs.append(temp_paragraph)
+                        temp_paragraph = ""
+                else:
+                    temp_paragraph = sentence
+                    if sentence.endswith('。'):
+                        split_paragraphs.append(temp_paragraph)
+                        temp_paragraph = ""
 
         if temp_paragraph:  # 残りのパラグラフを追加
             split_paragraphs.append(temp_paragraph)

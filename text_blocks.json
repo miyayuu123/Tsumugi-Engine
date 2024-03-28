@@ -1,95 +1,95 @@
 [
   {
     "ID": "クラスタ1",
-    "url": "https://xtech.nikkei.com/atcl/nxt/column/18/02781/031900002/",
+    "url": "https://www.forbes.com/sites/caileygleeson/",
     "content": [
-      "みずほフィナンシャルグループが、2024年内にもシステム運用業務に生成AIを本番導入する。 勘定系システム「MINORI」を中心とした重要システムが対象だ。 監視システムから受け取ったエラーメッセージに応じて、オペレーターに対応内容を提示する。 2023年に構築した運用業務の新システムと合わせて、8割のメッセージを自動処理できる体制も視野に入れる。 エラー対応の正確性確保に生かしたい考えだ。",
-      "「もともとは電話でやり取りしていたが、さばき切れない。 一連のシステム障害での反省だ」――。 主要システムの監視システムが発するメッセージの種類は10万超。 その量は障害発生などのピーク時には1時間当たり1万件を超えるという。",
-      "2021年のシステム障害前後、みずほの運用体制は大まかに次のようなものだった。 エラーメッセージの監視は、日本IBMとみずほFGが共同出資するMIデジタルサービスなどの運用担当が担い、マニュアルを基に原因の切り分けをしたり対処を施したりする。 運用担当だけでは解決が難しいエラーがあれば、みずほリサーチ＆テクノロジーズをはじめとする開発担当に連絡。 詳しい原因分析や復旧対応を依頼する。 主な連絡手段は電話やメールだった。",
-      "膨大な量のメッセージを読み取り、開発担当への連絡を含めて対処策を判断しなければならない運用担当の負担は重い。 正確性やスピードも担当者のスキルやノウハウで変動しかねない。 こうした課題を打開することは、障害対応力の強化を図るみずほにとって重要テーマだった。",
-      "みずほは2021年のシステム障害を機に運用業務のてこ入れに動いた。 その成果が、人手に頼っていたエラーメッセージの集約、切り分け、開発担当への連絡を自動化する新システムだ。 2023年夏にリリースした。 生成AIの導入も、この自動化施策の延長線上に位置づけられる。",
-      "まず、2023年夏にリリースした新システムを見ていこう。 米Splunkの製品をベースに、エラーメッセージを受け取ると運用担当が使うマニュアルの手順に沿った対処を実行できるようにロジックをつくり込んだものだ。 判断材料にするのはメッセージIDや対象システムなど。 システムの状態を確認したり開発担当に「Teams」で連絡したり、あるいは対処不要と判断したりといった対応を自動で進めてくれる。",
-      "経営幹部などを対象としたダッシュボードも併せて開発した。 システム単位や業務単位でエラーの発生状況を一覧でき、件数や時系列など表示内容は柔軟に変更できる。 米ServiceNowの製品を使っている。 「複数システムに障害が波及しても気付きやすい」利点もある。 それまでは個々のシステムの状況は把握できても、システム全体の状況をつかむのは難しかった。",
-      "新システムの導入で、主要システムの監視システムが発するエラーメッセージの約半分をカバーすることに成功した。 ただし課題が残った。 残り半分は、ロジックとして定義できなかったからだ。",
-      "エラーメッセージは「メッセージID」と詳細を記述した「メッセージ本文」で構成される。 ただ、監視対象には様々な企業が提供するハードウエアやミドルウエア、OSが混在するため、メッセージIDの位置がバラバラだったりIDと本文の組み合わせが複雑だったりする。 そうした複雑さが、ロジックのつくり込みによる監視の自動化を妨げる要因となっていた。"
+      "Got itForbes Staff|BusinessMy previous experiences include work at Chemical Watch, Becker's Healthcare, Chicago Lawyer Magazine and The Kane County Chronicle.",
+      "I graduated from DePaul University with degrees in journalism and psychology.",
+      "Email me at cgleeson@forbes.",
+      "SOCIALlatestarchive8,266 views9 hours agoTrump Blasts RFK.",
+      "And Nicole Shanahan, But Says His ‘Radical Left’ Bid Is ‘Great For MAGA’The former president ended Wednesday’s post by saying Kennedy is “Crooked Joe Biden’s Political Opponent, not mine.",
+      "”2,885 viewsMar 26, 2024What We Know About Visa And Mastercard’s Landmark $30 Billion Swipe Fee SettlementThe reduced rates could save retailers $30 billion over the next five years.",
+      "12,195 viewsMar 25, 2024DeSantis Approves Social Media Ban For Kids Under 14 In Florida: What To KnowDeSantis previously vetoed a more restrictive proposal that would’ve restricted use for children under 16.",
+      "12,013 viewsMar 25, 2024Boeing CEO Calhoun Steps Down After 737 Max CrisisCalhoun will leave his role at the end of 2024.",
+      "13,645 viewsMar 22, 2024Trump’s Truth Social Will Go Public After DWAC Approves MergerThe merger could give Trump a significant windfall—but shares of the blank check firm merging with Trump’s company slumped more than 6% on Friday.",
+      "Sues Apple In Landmark IPhone Antitrust CaseThe suit is the latest in the federal government’s crackdown on big tech companies.",
+      "1,012 viewsMar 20, 2024Trump Signals Support For 15-Week Abortion Ban—But He Hasn't Always Thought This WayTrump’s comments are the latest in his back-and-forth on the issue.",
+      "2,442 viewsMar 19, 2024Trump Says U.",
+      "Won’t Leave NATO If European Countries ‘Play Fair,’ Report SaysThe former president has criticized the alliance for years.",
+      "2,333 viewsMar 19, 2024George Lucas Backs Disney CEO Bob Iger In Battle With Billionaire PeltzLucas got 37.",
+      "1 million shares in the company after Disney acquired Lucasfilm in 2012.",
+      "4,096 viewsMar 18, 2024Trader Joe’s Cashews Recall: Product Pulled In 16 States Over Salmonella ConcernsThe supermarket chain recalled more than 61,000 pounds of chicken soup dumplings earlier this month."
     ]
   },
   {
     "ID": "クラスタ2",
-    "url": "https://xtech.nikkei.com/atcl/nxt/column/18/00110/00416/?i_cid=nbpnxt_ranking",
+    "url": "https://www.forbes.com/sites/davidhambling/",
     "content": [
-      "日本橋上空に架かる首都高速道路を地下化する事業で、シールドトンネル工事の施工者が大成建設に決まった。 契約金額は761億2000万円。 工期は2024年3月～34年3月の10年に及ぶ。",
-      "首都高が3月19日、同JVと441億9910万円で契約した。 工期は24年3月～36年3月。",
-      "この方式ではまず、技術提案などを基に入札参加者を2者に絞り込む。 続いて、2者と実施設計契約を締結。",
-      "この入札には大成建設だけが単独で参加。 その他、安藤ハザマ・前田建設工業・りんかい日産建設JV、大林組・佐藤工業・銭高組JV、鹿島・鉄建建設・東急建設JV、清水建設・竹中土木JVの4者が参加した。",
-      "1次選抜では、技術提案などを95点満点で評価。 74点の大成建設と65点の大林組JVの上位2者が残った。 この結果を受けて首都高は23年3月、大成建設と1億9580万円、大林組JVと1億2100万円で、それぞれ実施設計契約を結んだ。",
-      "1年後の2次選抜では、税抜きの入札価格が大林組JVよりも42億円高かった大成建設が、価格評価点で同JVに6点以上の差をつけられた。 しかし、大成建設は技術評価点が83と、大林組JVの74を9点上回ったため、逆転落札した。"
+      "Got itSenior Contributor|Aerospace & DefenseAuthor of 'Swarm Troopers: How small drones will conquer the world,' following cutting-edge military technology in general and robotic systems in particular.",
+      "New time-travel adventure 'City of Sorcerers' out now in paperback and Kindle.",
+      "SOCIALlatestarchive5,303 viewsMar 26, 2024Ukrainian Wild Hornets Co-Founder Talks About The Future Of Drone WarsUkraine will make at least a million drones this year.",
+      "Dmytro Prodanyuk of nonprofit drone makers Wild Hornets talks drone technology and how it is changing warfare.",
+      "56,838 viewsMar 21, 2024Ukraine Rolls Out Target-Seeking Terminator DronesUkraine is now building autonomous attack drones in large numbers.",
+      "These do not need human pilots, a game-changing technology with implications far beyond this conflict.",
+      "12,182 viewsMar 18, 2024Russia Puts On Song And Dance For New Tanks, But What’s Behind The Curtain?A showbiz send-off for a shipment of T-90M tanks to the front fails to gloss over the dire state of Russia's tank production — these 'new' tanks may not be exactly new.",
+      "39,953 viewsMar 14, 2024Ukraine Prepares To Roll Out An Army Of Ground RobotsUkraine has set the pace for using drones as a low-cost alternative to crewed platforms.",
+      "Now they aim to repeat the feat with large-scale use of military ground robots.",
+      "196,648 viewsMar 12, 2024Ukraine’s Flying Claymore Mines Cut Down Russian InfantryFPVs normally have RPG warheads which explode on impact, but a new type is detonated mid-air to produce a spray of lethal anti-personnel shrapnel.",
+      "158,672 viewsMar 8, 2024Russian Fiber Optic Drone Beats Any Jammer The Ukrainians recently captured a Russian drone which communicates via a fiber-optic link, making it jam-proof.",
+      "This looks like a big headache and not just for Ukraine.",
+      "7,038 viewsMar 7, 2024How Ukraine Is Building A Drone Army At Its Kitchen TablesUkraine is crowdsourcing the production of FPV kamikaze drones and volunteers are assembling vast numbers of low-cost precision weapons at home.",
+      "22,585 viewsMar 5, 2024Russian Video Appears To Show Mass Production Of Shahed Attack DronesA new video apparently shows large numbers of Shahed attack drones being made a huge new facility.",
+      "But things may not be quite what they seem.",
+      "19,502 viewsMar 1, 2024Russian Kamikaze Drone Now Seems To Identify Its Own TargetsNew video seems to show a version of the Lancet used by Russian Special Forces with automated object recognition identifying tanks, self-propelled guns and other targets30,664 viewsFeb 29, 2024Russian FPV Kamikaze Drone Operators Claim Abrams KillRussian media has credited two kamikaze drone operators with the destruction of the U.",
+      "-supplied tank in Ukraine, in what may be a sign of things to come."
     ]
   },
   {
     "ID": "クラスタ3",
-    "url": "https://xtech.nikkei.com/atcl/nxt/info/18/00033/080800098/",
+    "url": "https://www.forbes.com/sites/emmareynolds/",
     "content": [
-      "日経クロステックをご覧のみなさま。 登録会員へのお申し込みはお済みでしょうか。 日経クロステックの登録会員になると、日経クロステックをもっと便利にご利用いただけます。 登録会員ならではのメリットをご紹介します。",
-      "登録会員向けに多数の連載を用意しています。 その一部をご紹介します。",
-      "現在・昨日・週間の記事ランキングは、総合ランキングのページや分野別のランキングページで見られますが、登録会員だとさらに役員クラス、部課長クラス、一般社員クラスなどの役職別のランキングや、年代別のランキングなど、細かな条件のランキングも見られます。 「日経クロステック ランキング」からたどってください。",
-      "登録会員になると「マイページ」の「フォロー」「クリップ」などの機能が使えます。 気になる特集や連載を読んだら「フォロー」。 特集や連載の続きがマイページに自動で表示されます。 「クリップ」はいわゆるブックマーク。 読み返したい記事をマイページ内に集約できます。",
-      "マイページで便利なのは「マイキーワード」機能。 興味ある語句を設定しておくと、その語句が含まれた記事を自動で表示します。 語句は複数指定できるので、都度検索機能を使うよりも手軽です。",
-      "特定分野／テーマの有料記事を登録会員向けに一定期間開放しています。 開放中の記事は「無料開放中の有料記事一覧」からたどれます。 有料会員になる前の「お試し」として有料記事の内容を確認できます。",
-      "登録会員になると、各種のメールマガジンを購読できるようになります。 以下のメールは組み合わせを自由に選べます。",
-      "毎週木曜日HTML形式でお届けします。 登録会員向けを中心にさまざまな分野の記事をご紹介します。",
-      "IT分野の記事を毎朝お届けします。",
-      "電機、製造、自動車に関連する記事を毎朝お届けします。",
-      "建築・土木分野の記事を毎朝お届けします。",
-      "パソコンやスマートフォン、タブレットの使いこなしや最新機器についての記事を紹介します。",
-      "IT分野のニュースやトレンド解説の記事を紹介します。",
-      "IT分野で注目の話題を夕方にお届けします。 当日取材、執筆した記事を掲載することも。",
-      "RSSリーダーのほか、TeamsやSlackにフィードを読み込ませることもできます。 「日経クロステックのRSS配信」でフィードのアドレスを紹介しています。",
-      "登録会員でも日経クロステックのさまざまな記事を読めますが、有料会員は雑誌のデジタル版を含むすべての記事が読み放題。 雑誌の誌面PDFも毎月100ページまでダウンロードできます。"
+      "Got itSenior Contributor|ForbesLifeI am a New York-based freelance writer who covers luxury lifestyle, as well as home design and luxury real estate.",
+      "I currently freelance for luxury publications on executive lifestyle, spirits, fashion, fine and high jewelry, wellness and private aviation.",
+      "Most recently, I was at.",
+      "Read MoreSOCIALlatestpopulararchive147 views9 hours agoDJ Khaled’s Former Florida Home Hits The Market For $16.",
+      "4 MillionRapper DJ Khaled once lived in this home from 2015 to 2020.",
+      "Located in Aventura, Florida, the sprawling mansion still includes his 1,000-square-foot sneaker shrine.",
+      "738 viewsMar 26, 2024Core: New York, A Private Members’ Club, Opens With A Chic DesignMembers' club CORE: New York just opened on Fifth Avenue.",
+      "The 60,000-square-foot, four-floor space was designed by Milan-based architecture and design firm m2atelier.",
+      "5 Million Los Angeles Mansion Heads To AuctionThe 12,000-square-foot home in L.",
+      "'s Hidden Hills area will hit the auction block April 18 through April 30.",
+      "Bidding is expected to start from $7 million to $12 million.",
+      "896 viewsMar 22, 2024This $15.",
+      "385 Million Miami Spec Home Prioritizes Biophilic DesignLocated on 2000 North Bay Road, one of Miami’s most prestigious residential communities, this spec home from Argent Design integrates natural elements.",
+      "1,479 viewsMar 4, 2024Olson Kundig Launches The Houses At 8899 Beverly In West HollywoodRenowned architecture firm Olson Kundig recently unveiled the Houses at 8899 Beverly—a collection of eight uniquely designed homes in West Hollywood."
     ]
   },
   {
     "ID": "クラスタ4",
-    "url": "https://xtech.nikkei.com/atcl/nxt/mag/ncr/18/00211/022900001/?i_cid=nbpnxt_ranking",
+    "url": "https://www.forbes.com/sites/stevenehrlich/2024/03/27/the-rise-of-cryptos-billion-dollar-zombies/",
     "content": [
-      "2018年の西日本豪雨の影響で崩落した橋を復旧したが、設計ミスにより耐震性が不足していた。 さらに、桁かかり長が必要な長さを満たしておらず、落橋防止機能が働かない構造になっていた。",
-      "中国・四国地方に甚大な被害をもたらした2018年の西日本豪雨。 この豪雨の影響で広島県呉市の女垣内1号線1号橋が崩落した。 市は18～19年度に約5335万円をかけて橋などを復旧したものの、設計ミスが原因で完成後に補修工事を実施するはめになった。",
-      "資料1■ 復旧した女垣内1号線1号橋。",
-      "復旧した女垣内1号橋は、橋長9.9mで、幅員5m。 上部構造はプレストレストコンクリート桁で、下部構造は直接基礎の逆T式橋台2基で構成されている。 耐震性能を確保するために、2つの橋台それぞれの支承部に長さ0.58m、直径28mmのアンカーバー5本を設置した。",
-      "しかし、会計検査院は復旧した女垣内1号橋は耐震性が不足しており、落橋防止機能も確保されていないと指摘した。",
-      "市が設計に当たって基準としたのは、日本道路協会の「道路橋示方書・同解説」だ。 橋台に設置する支承部には、上部構造の荷重を確実に下部構造へ伝達する性能を求めている。 支承部の設計では、レベル1地震動やレベル2地震動による影響を考慮しなければならない。 しかし、市が設計を委託した建設コンサルタント会社は、レベル2地震動時の照査を実施していなかった。"
+      "Edit StoryPremium display BREAKING badge on the left display other badges on the rightDaily Cover Illustration by Nicolas Ortega for ForbesSteven EhrlichForbes StaffDirector of FDA; Editor, Forbes CryptoAsset & Blockchain Advisor.",
+      "Maria Gracia Santillana LinaresForbes StaffI cover the intersection of business, culture and technology.",
+      "Mar 27, 2024,06:30am EDTWith bitcoin soaring once again, blockchains are suddenly much more valuable.",
+      "More than 50 of them are now worth over $1 billion—despite many having few users.",
+      "In 2012 when Blockchain pioneers Jed McCaleb, Arthur Britto and David Schwartz created Ripple Labs and its new cryptocurrency, known as XRP, they envisioned a new global financial standard that would enable banks to transfer money rapidly with minimal fees.",
+      "During its first decade, dozens of financial institutions, including Bank of America and Banco Santander, signed up, eager to test Ripple’s new network.",
+      "To fund their ambitious project, executives at the company created 100 billion XRP tokens and sold $1.",
+      "4 billion worth to the public.",
+      "In early 2018, at the height of the first wave of crypto euphoria, XRP was trading with a market value of $132 billion, giving cofounder and executive chairman Chris Larsen a net worth of $8 billion."
     ]
   },
   {
     "ID": "クラスタ5",
-    "url": "https://xtech.nikkei.com/atcl/nxt/column/18/02484/031900033/?i_cid=nbpnxt_ranking",
+    "url": "https://www.forbes.com/sites/johnkang/",
     "content": [
-      "鹿島が驚きの新技術を披露した。 CO2を吸収して硬化する「CUCO-SUICOMドーム」だ。 2025年国際博覧会の会場に建設する計画だ。 24年3月13日、建ち上がったばかりのドームを報道陣に公開した。",
-      "鹿島が公開した「CUCO-SUICOMドーム」の内部。",
-      "大阪・関西万博では西ゲート広場付近に建てられ、環境教育の場として使われる。 建物の高さはおよそ5m。 平面は長径23m、短径18mの楕円形状をしており、延べ面積は約260m2ある。",
-      "構造は鉄筋コンクリート造で、2種類のコンクリートを使った。 鹿島が14年に竹中工務店などと開発した低炭素型の「ECMコンクリート」と、新たに開発した脱炭素型の「CUCO-SUICOMショット」だ。",
-      "一般的なコンクリートを使う場合と同等の強度を確保しつつ、CO2排出量を約70％減らした。",
-      "「未来社会の実験場」をコンセプトに掲げる大阪・関西万博。 会場内に建てられるCUCO-SUICOMドームの完成イメージ。 建設場所は大阪・関西万博のシンボルとなるリング状の木造大屋根の外側。 西ゲート広場付近だ。",
-      "試験施工したCUCO-SUICOMドーム。 施工期間は2023年7月から24年2月まで。",
-      "新技術の最大のポイントは材料と工法の組み合わせにある。 脱炭素型コンクリートを現場打ちするのに適した工法を採用した。 鹿島が米ドームテクノロジー社との技術提携により、21年に開発した「KTドーム」工法だ。 膨らませたドーム型のポリ塩化ビニール膜を捨て型枠として使い、吹き付けコンクリートで躯体を構築する。",
-      "この安全審査が評定に当たる。",
-      "一般的に低炭素型や脱炭素型のコンクリートは中性化が早く、内部の鉄筋が腐食しやすいという課題がある。 そのためRC造の躯体として使うのが難しかった。 「今回の工法は膜があるためコンクリートが外気に触れず、雨水も当たらない。 こうすればRC造の躯体に適用できるということを実験と解析で明らかにした」。",
-      "施工は次の手順で進める。 まずドーム型のPVC膜を送風機で膨らませる。 作業員が膜の内側に断熱材を取り付け、鉄筋を組む。 次にECMコンクリート、CUCO-SUICOMショットの順でコンクリートを吹き付けて躯体を施工。 コンクリートの厚さはそれぞれ167mmと33mmとした。",
-      "ドーム型のポリ塩化ビニール膜を送風機で膨らませ、これを型枠として内側に配筋する。",
-      "ECMコンクリート、CUCO-SUICOMショットの順でコンクリートを吹き付ける。",
-      "その後、躯体の内側にダクトを設置する。 さらに躯体内部で新たに小型ドームを膨らませて内膜をつくり、躯体と内膜の間に厚さ300mmの隙間を設ける。 ダクトを通して隙間にCO2を充填。 高濃度CO2環境下でCUCO-SUICOMショットを約1週間養生し、CO2を吸収させる。",
-      "鉄筋にコンクリートを吹き付けて躯体を構築した後、躯体内部で小型ドームを膨らませ、内膜をつくる。"
-    ]
-  },
-  {
-    "ID": "クラスタ6",
-    "url": "https://xtech.nikkei.com/atcl/nxt/column/18/00138/032501494/",
-    "content": [
-      "ラスベガスの街中にそびえたつ奇妙な球体をご存じだろうか。 「The Venetian Resort」のすぐ近くにあるこの建物の正体は2023年9月29日にオープンしたエンターテインメント施設「Sphere」である。 オープンに際して、アイルランドのロックバンド「U2」がこけら落とし公演を行い、様々なメディアでその様子が報道された。",
-      "筆者は2024年1月に、テクノロジー見本市「CES 2024」を訪れた。 せっかくの機会だったので、スフィアで公開されている演目「Postcard From Earth」に参加し、この巨大な球体の内部に入ってみた。",
-      "まず、スフィアのスペックについて見ていく。 スフィアの大きさは、高さ366フィート、幅516フィート。 建物の外側にあるLEDはサイズ58万平方フィート。 建物内には、16万個以上のスピーカー、120万個以上のLEDからなる解像度16K×16K、サイズ16万平方フィートのスクリーンがある。 総工費は23億米ドルといわれている。",
-      "筆者は午後7時からのチケットを購入した。 チケット購入は映画館のように、幾つかのブースの中から空いている席を選び、購入する方式である。 購入時に1つ注意すべき点がある。 チケット選択時に表示される時間は入場開始時間である。 実際の上演開始時間はチケットに書かれた時間の1時間後であった。",
-      "午後7時から始まると思ったため、筆者は午後6時には会場へ向かったが、先の通り開始時間は午後8時からだったので2時間待つ羽目になった。 入場開始時間になると、1人ずつチケットのQRコードを機械に読ませ、手荷物検査を受ける。 大きな荷物や飲食物は中に持ち込むことができない。 大きな荷物はクロークに預けなればならず、飲食物はその場での処分が求められた。"
+      "Got itForbes Staff|AsiaI’m an associate editor at Forbes based in Hong Kong, covering entrepreneurs and investors in Asia.",
+      "I co-edit Korea’s 50 Richest and Forbes Asia 100 to Watch lists, and help research and write other Asia-related lists, including 30 Under 30 Asia, Hong Kong’s 50 Richest, Best.",
+      "Read MoreSOCIALlatestpopulararchivePREMIUM5,379 viewsMar 14, 2024Founder Of Chip-Testing Firm Rides AI Boom To Become South Korea’s Newest BillionaireShares of Leeno Industrial, an under-the-radar semiconductor firm in Busan, have soared over 70% since November, making founder and CEO Lee Chae-yoon a billionaire.",
+      "PREMIUM1,961 viewsMar 13, 2024Real Madrid Kicks Off Startup Accelerator In Asia, Philippine Tycoon’s Ideaspace And More To Help Scout StartupsIdeaspace in the Philippines, Singapore-based Saison Capital and Impactto in Indonesia are some of the startup support groups and VC firms helping with the scouting.",
+      "PREMIUM2,297 viewsFeb 27, 2024Korean Beauty Device Maker APR Jumps In IPO DebutThe unicorn is best known for its Medicube Age-R products, like Booster Healer devices used by folks like Hailey Bieber.",
+      "PREMIUM11,859 viewsFeb 23, 2024Merck Deal Boosts Founder Of Little-Known Korean Biotech Company Into Billionaire RanksPark Soon-jae, founder and CEO of Alteogen, joins the three-comma club after his company announced a licensing deal with the U.",
+      "6,488 viewsFeb 21, 2024Casino Magnate Lawrence Ho Drops Off List Of Hong Kong’s 50 Richest Amid Macau’s Gambling SlumpAfter appearing on Hong Kong’s 50 Richest list for a decade, Lawrence Ho, son of late casino legend Stanley Ho, is a notable drop-off this year."
     ]
   }
 ]
