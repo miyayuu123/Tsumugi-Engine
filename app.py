@@ -244,16 +244,16 @@ def train_model():
     # レスポンスを直ちに返す
     return jsonify({"message": "Model training initiated"}), 202
 
-#if __name__ == '__main__':
-#   app.run(debug=True)
-
-
 if __name__ == '__main__':
+   app.run(debug=True)
+
+
+#if __name__ == '__main__':
     # テスト用のURLとパラメータを設定
-    test_url = "https://scholar.google.com/scholar?hl=ja&as_sdt=0,5&q=something&btnG=&oq=something"
-    desired_chars_per_cluster = 5000
-    model_id = "test_model_1"
-    url_structure = "all"
+#    test_url = "https://scholar.google.com/scholar?hl=ja&as_sdt=0,5&q=something&btnG=&oq=something"
+#    desired_chars_per_cluster = 5000
+#   model_id = "test_model_1"
+#    url_structure = "all"
 
     # background_task関数を直接呼び出して処理を実行
-    background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
+#    background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
