@@ -275,10 +275,10 @@ def train_model():
 
 if __name__ == '__main__':
     # テスト用のURLとパラメータを設定
-    test_url = "https://xtech.nikkei.com/"
+    test_url = "https://scholar.google.com/scholar?hl=ja&as_sdt=0,5&q=something&btnG=&oq=something"
     desired_chars_per_cluster = 5000
     model_id = "00"
-    url_structure = "https://xtech.nikkei.com/atcl/nxt"
+    url_structure = "all"
 
     # background_task関数を直接呼び出して処理を実行
     background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
