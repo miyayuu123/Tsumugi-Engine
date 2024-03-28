@@ -77,8 +77,16 @@ class App:
                 url = future_to_url[future]
                 try:
                     _, paragraphs = future.result()
-                    self.texts_per_url[url] = paragraphs
-                    self.all_paragraphs.extend(paragraphs)
+                    # texts_per_urlの内容をfinal_texts_per_urlに統合
+                    if url in self.final_texts_per_url:
+                        # 既に存在するURLの場合、重複しないように新たなパラグラフを追加
+                        existing_paragraphs = self.final_texts_per_url[url]
+                        for paragraph in paragraphs:
+                            if paragraph not in existing_paragraphs:
+                                self.final_texts_per_url[url].append(paragraph)
+                    else:
+                        # 新しいURLの場合、直接追加
+                        self.final_texts_per_url[url] = paragraphs
                 except Exception as exc:
                     print(f'{url} の処理中にエラーが発生しました: {exc}')
 
@@ -128,6 +136,7 @@ class App:
         # remove_duplicate_textsメソッドを呼び出して重複を削除
         self.remove_duplicate_texts()
 
+        print(len(self.final_texts_per_url))
         text_blocks = []
         block_id = 1  # ブロックIDを数えるためのカウンタ
         for url, paragraphs in self.final_texts_per_url.items():
@@ -161,7 +170,7 @@ class App:
         self.final_blocks.extend(text_blocks)
 
     def save_final_blocks(self, model_id, output_file_path='text_blocks.json'):
-        # JavaScriptが含まれるテキストブロックの数をカウント
+
         js_count = sum(1 for block in self.final_blocks if 'JavaScript' in ' '.join(block['content']))
         js_ratio = js_count / len(self.final_blocks) if self.final_blocks else 0
         total_chars = sum(len(' '.join(block['content'])) for block in self.final_blocks)
@@ -207,7 +216,6 @@ class App:
             self.update_model_status_and_insert_result(model_id, self.final_blocks)
 
     def update_model_status_and_insert_result(self, model_id, result_json):
-
             # modelsテーブルのstatusを更新
             update_response = supabase.table("models").update({"status": "finished"}).eq("model_id", model_id).execute()
             # resultテーブルに新しいレコードを挿入
@@ -236,16 +244,16 @@ def train_model():
     # レスポンスを直ちに返す
     return jsonify({"message": "Model training initiated"}), 202
 
-if __name__ == '__main__':
-   app.run(debug=True)
-
-
 #if __name__ == '__main__':
+#   app.run(debug=True)
+
+
+if __name__ == '__main__':
     # テスト用のURLとパラメータを設定
-#    test_url = "https://www.forbes.com/"
-#    desired_chars_per_cluster = 5000
-#    model_id = "test_model_1"
-#    url_structure = "https://www.forbes.com/sites"
+    test_url = "https://scholar.google.com/scholar?hl=ja&as_sdt=0,5&q=something&btnG=&oq=something"
+    desired_chars_per_cluster = 5000
+    model_id = "test_model_1"
+    url_structure = "all"
 
     # background_task関数を直接呼び出して処理を実行
-#    background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
+    background_task(test_url, desired_chars_per_cluster, model_id, url_structure)

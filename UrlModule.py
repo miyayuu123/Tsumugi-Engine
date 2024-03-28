@@ -29,8 +29,6 @@ class URLModule:
         )
 
     def dispatch_url(self, url, structure=None, max_urls=10):
-        print(url)
-        print("come")
         if 'wikipedia' in url:
             chosen_structure = "https://ja.wikipedia.org/wiki/"
             return self.crawl_by_structure(url, chosen_structure, max_urls)
@@ -39,6 +37,12 @@ class URLModule:
         else:
             if structure is None:
                 return
+            elif structure == "all":
+                result_with_js = self.fetch_links_from_js_page(url, max_urls)
+                if not result_with_js:
+                    return self.get_related_urls(url, max_urls)
+                else:
+                    return result_with_js
             else:
                 chosen_structure = structure
                 # JavaScriptを使用してクロールするメソッドの結果を取得
@@ -143,28 +147,52 @@ class URLModule:
     def crawl_by_structure_with_js_sync(self, base_url, chosen_structure, max_urls=10):
         return asyncio.run(self.crawl_by_structure_with_js(base_url, chosen_structure, max_urls))
 
-    async def get_links_from_js_page(self, url):
-        visited = set()  # 取得したURLの集合を初期化
+    async def get_links_from_js_page(self, url, max_urls=10):
+        visited = set()
         async with async_playwright() as pw:
             browser = await pw.chromium.connect_over_cdp(self.SBR_WS_CDP)
-            #browser = await pw.chromium.launch(headless=False)  # ヘッドレスモードでブラウザを起動
             try:
                 page = await browser.new_page()
                 await page.goto(url)
                 links = await page.query_selector_all('a[href]')
-                for link in links:
+                shuffle(links)
+                index = 0
+                while len(visited) < max_urls and index < len(links):
+                    link = links[index]
                     href = await link.get_attribute('href')
                     absolute_url = urljoin(url, href)
                     visited.add(absolute_url)
+                    index += 1
             finally:
                 await browser.close()
         return visited
 
-    # 同期コードから非同期メソッドを呼び出すためのメソッド
-    def fetch_links_from_js_page(self, url):
-        return asyncio.run(self.get_links_from_js_page(url))
+    def fetch_links_from_js_page(self, url, max_urls=10):
+        return asyncio.run(self.get_links_from_js_page(url, max_urls))
 
+    def get_related_urls(self, url, max_urls=10):
+        visited = set()
 
+        try:
+            ssl_context = ssl.create_default_context(cafile=self.CERT_PATH)
+            opener = self.build_opener(ssl_context)
+            with opener.open(url) as response:
+                html_content = response.read()
+        except Exception as e:
+            logging.error(f"Error occurred while fetching URL: {url}: {e}")
+            return visited  # エラーが発生した場合は、空の集合を返す
+
+        soup = BeautifulSoup(html_content, 'html.parser')
+        links = soup.find_all('a', href=True)
+        shuffle(links)
+        for link in links:
+            if len(visited) >= max_urls:
+                break  # max_urlsに達したらループを抜ける
+            href = link['href']
+            absolute_url = urljoin(url, href)  # 相対URLを絶対URLに変換
+            visited.add(absolute_url)  # 絶対URLを集合に追加
+
+        return visited
 
 
 
