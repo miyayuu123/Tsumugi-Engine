@@ -12,6 +12,15 @@ class Tagmodule:
     def __init__(self):
         # SSLコンテキストの作成
         self.ssl_context = ssl.create_default_context(cafile=self.CERT_PATH)
+        self.language = "unknown"  # 初期状態では言語は未定
+
+    def detect_language(self, text):
+        try:
+            self.language = langdetect.detect(text)
+            print(f"[デバッグ] 検出された言語: {self.language}")
+        except langdetect.lang_detect_exception.LangDetectException:
+            self.language = "unknown"
+            print("[デバッグ] 言語検出失敗: unknown")
 
     def build_opener(self):
         # プロキシハンドラーとHTTPSハンドラーを設定
@@ -24,12 +33,6 @@ class Tagmodule:
         # オープナーの作成
         opener = urllib.request.build_opener(proxy_handler, https_handler)
         return opener
-
-    def detect_language(self, text):
-        try:
-            return langdetect.detect(text)
-        except langdetect.lang_detect_exception.LangDetectException:
-            return "unknown"
 
     def extract_text_without_splitting(self, url):
         opener = self.build_opener()
@@ -66,7 +69,7 @@ class Tagmodule:
         complete_text = re.sub(r'\n ', '\n', complete_text)
         complete_text = re.sub(r' \n', '\n', complete_text)
         complete_text = re.sub(r'^\s+', '', complete_text)
-
+        self.detect_language(complete_text)  # テキスト全体で言語を判定
         if "wikipedia" in url:
             # "出典: フリー百科事典『ウィキペディア』"で始まるかチェック
             if not complete_text.startswith("出典: フリー百科事典『ウィキペディア』"):
@@ -75,71 +78,32 @@ class Tagmodule:
                 # 条件に合う場合はその文言を除いたテキストを返す
                 return complete_text.replace("出典: フリー百科事典『ウィキペディア』", "").strip(), page_title
         # テキストとタイトルを返す
-        return complete_text, page_title
 
-    def extract_sentences(self, text, min_length=10):
-        lang = self.detect_language(text)
-        if lang == "en":
-            pattern = r'[^.]+[.]'
-        else:
-            pattern = r'[^。]+[。]'
-        sentences = re.findall(pattern, text)
-        sentences_filtered = []
-        exclusion_keywords = ["詳細は", "脚注", "注釈", "出典", "参考文献", "関連項目", "ロンドル", "ウィキペディア", "ウィキメディア", "javascript", "JavaScript"]
-
-        # 漢字が7回以上連続しているパターン
-        kanji_sequence_pattern = re.compile(r'[\u4e00-\u9faf\u3400-\u4dbf]{7,}')
-
-        for sentence in sentences:
-            if any(keyword in sentence for keyword in exclusion_keywords):
-                continue  # 指定されたキーワードを含む文はスキップ
-            if kanji_sequence_pattern.search(sentence):
-                continue  # 漢字が7回以上連続している文はスキップ
-            sentence_trimmed = sentence.strip()
-            if len(sentence_trimmed) >= min_length:
-                sentences_filtered.append(sentence_trimmed)
-        return sentences_filtered
+        return self.extract_paragraphs(complete_text)
 
 
     def extract_paragraphs(self, text):
-        lang = self.detect_language(text)
-        # 改行でテキストを分割してパラグラフを取得
-        paragraphs = text.split('\n')
-        pre_processed_paragraphs = []
+        if self.language == "en":
+            print("英語ぴょん")
+        else:
+            print("それ以外")
+            # 改行でテキストを分割してパラグラフを取得
+            paragraphs = text.split('\n')
+            pre_processed_paragraphs = []
 
-        for paragraph in paragraphs:
-            cleaned_paragraph = paragraph.strip()
-            if lang == "en":
+            # まず、長すぎるパラグラフを分割
+            for paragraph in paragraphs:
+                cleaned_paragraph = paragraph.strip()
                 if len(cleaned_paragraph) > len(text) / 5:
-                    pre_processed_paragraphs.extend(self.split_long_paragraph(cleaned_paragraph, lang))
-            else:
-                if len(cleaned_paragraph) > len(text) / 5:
-                    pre_processed_paragraphs.extend(self.split_long_paragraph(cleaned_paragraph, lang))
-
-        meaningful_paragraphs = []
-        temp_paragraph = ""  # 一時的にパラグラフを保持する変数
-
-        # 分割後のパラグラフに対して既存の処理を適用
-        for paragraph in pre_processed_paragraphs:
-            if lang == "en":
-                if '.' in paragraph:
-                    if temp_paragraph and not temp_paragraph.endswith('.'):
-                        temp_paragraph += paragraph
-                        if temp_paragraph.endswith('.'):
-                            meaningful_paragraphs.append(temp_paragraph)
-                            temp_paragraph = ""
-                    else:
-                        temp_paragraph = paragraph
-                        if paragraph.endswith('.'):
-                            meaningful_paragraphs.append(temp_paragraph)
-                            temp_paragraph = ""
+                    pre_processed_paragraphs.extend(self.split_long_paragraph(cleaned_paragraph))
                 else:
-                    if temp_paragraph:
-                        meaningful_paragraphs.append(temp_paragraph + paragraph)
-                        temp_paragraph = ""
-                    else:
-                        meaningful_paragraphs.append(paragraph)
-            else:
+                    pre_processed_paragraphs.append(cleaned_paragraph)
+
+            meaningful_paragraphs = []
+            temp_paragraph = ""  # 一時的にパラグラフを保持する変数
+
+            # 分割後のパラグラフに対して既存の処理を適用
+            for paragraph in pre_processed_paragraphs:
                 if '。' in paragraph:
                     if temp_paragraph and not temp_paragraph.endswith('。'):
                         temp_paragraph += paragraph
@@ -158,37 +122,26 @@ class Tagmodule:
                     else:
                         meaningful_paragraphs.append(paragraph)
 
-        if temp_paragraph:  # 残りのパラグラフを追加
-            meaningful_paragraphs.append(temp_paragraph)
+            if temp_paragraph:  # 残りのパラグラフを追加
+                meaningful_paragraphs.append(temp_paragraph)
 
-        processed_paragraphs = []
-        for paragraph in meaningful_paragraphs:
-            sentences = self.extract_sentences(paragraph)
-            processed_paragraph = ' '.join(sentences)
-            processed_paragraphs.append(processed_paragraph)
-        return processed_paragraphs
+            processed_paragraphs = []
+            for paragraph in meaningful_paragraphs:
+                sentences = self.extract_sentences(paragraph)
+                processed_paragraph = ' '.join(sentences)
+                processed_paragraphs.append(processed_paragraph)
+            return processed_paragraphs
 
-    def split_long_paragraph(self, paragraph, lang="unknown"):
-        if lang == "en":
-            sentences = re.split(r'(?<=\.)', paragraph)
+    def split_long_paragraph(self, paragraph):
+        if self.language == "en":
+            print("英語ぴょん")
         else:
+            # 「。」で終わる文で分割する
             sentences = re.split(r'(?<=。)', paragraph)
-        split_paragraphs = []
-        temp_paragraph = ""
+            split_paragraphs = []
+            temp_paragraph = ""
 
-        for sentence in sentences:
-            if lang == "en":
-                if temp_paragraph and not temp_paragraph.endswith('.'):
-                    temp_paragraph += sentence
-                    if sentence.endswith('.'):
-                        split_paragraphs.append(temp_paragraph)
-                        temp_paragraph = ""
-                else:
-                    temp_paragraph = sentence
-                    if sentence.endswith('.'):
-                        split_paragraphs.append(temp_paragraph)
-                        temp_paragraph = ""
-            else:
+            for sentence in sentences:
                 if temp_paragraph and not temp_paragraph.endswith('。'):
                     temp_paragraph += sentence
                     if sentence.endswith('。'):
@@ -200,10 +153,33 @@ class Tagmodule:
                         split_paragraphs.append(temp_paragraph)
                         temp_paragraph = ""
 
-        if temp_paragraph:  # 残りのパラグラフを追加
-            split_paragraphs.append(temp_paragraph)
+            if temp_paragraph:  # 残りのパラグラフを追加
+                split_paragraphs.append(temp_paragraph)
 
-        return split_paragraphs
+            return split_paragraphs
+
+    def extract_sentences(self, text, min_length=10):
+        if self.language == "en":
+            print("英語ぴょん")
+        else:
+            pattern = r'[^。]+[。]'
+            sentences = re.findall(pattern, text)
+            sentences_filtered = []
+            exclusion_keywords = ["詳細は", "脚注", "注釈", "出典", "参考文献", "関連項目", "ロンドル", "ウィキペディア", "ウィキメディア", "javascript", "JavaScript"]
+
+            # 漢字が7回以上連続しているパターン
+            kanji_sequence_pattern = re.compile(r'[\u4e00-\u9faf\u3400-\u4dbf]{7,}')
+
+            for sentence in sentences:
+                if any(keyword in sentence for keyword in exclusion_keywords):
+                    continue  # 指定されたキーワードを含む文はスキップ
+                if kanji_sequence_pattern.search(sentence):
+                    continue  # 漢字が7回以上連続している文はスキップ
+                sentence_trimmed = sentence.strip()
+                if len(sentence_trimmed) >= min_length:
+                    sentences_filtered.append(sentence_trimmed)
+            return sentences_filtered
+
 
 
 if __name__ == "__main__":

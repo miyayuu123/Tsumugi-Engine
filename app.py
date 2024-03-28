@@ -35,7 +35,6 @@ class App:
         self.urls = []
         self.texts_per_url = {}
         self.final_texts_per_url = {}
-        self.all_paragraphs = []
         self.removed_paragraphs = []  # 削除されたパラグラフを追跡
         self.retry_count = 0
         self.final_blocks = []
@@ -46,8 +45,9 @@ class App:
         # Tagmoduleのインスタンスを作成
         tagmodule = Tagmodule()
         # URLごとにテキストと段落を抽出
-        text, _ = tagmodule.extract_text_without_splitting(url)
-        paragraphs = tagmodule.extract_paragraphs(text)
+        paragraphs = tagmodule.extract_text_without_splitting(url)
+        if paragraphs is None:
+            paragraphs = []  # paragraphsがNoneの場合は空リストを返す
         return url, paragraphs
 
     def encode_url(self, url):
@@ -98,24 +98,47 @@ class App:
                 self.final_texts_per_url[url] = paragraphs
 
         print(f'抽出されたURLの数: {len(encoded_urls)}')
-        print(f'ユニークなパラグラフの数: {len(self.all_paragraphs)}')
+        print(f'ユニークなパラグラフの数: {len([paragraph for paragraphs in self.final_texts_per_url.values() for paragraph in paragraphs])}')
 
     def remove_similar_paragraphs(self, threshold=0.5):
-        try:
-            vectorizer = TfidfVectorizer()
-            tfidf_matrix = vectorizer.fit_transform(self.all_paragraphs)
-            cosine_sim_matrix = cosine_similarity(tfidf_matrix)
+        # 全パラグラフの集約
+        all_paragraphs = [paragraph for paragraphs in self.final_texts_per_url.values() for paragraph in paragraphs]
+        original_paragraph_count = len(all_paragraphs)  # 除去前のパラグラフ総数
+        if original_paragraph_count == 0:
+            return
 
-            to_remove = set()
-            for i in range(len(cosine_sim_matrix)):
-                for j in range(i + 1, len(cosine_sim_matrix)):
-                    if cosine_sim_matrix[i, j] > threshold:
-                        to_remove.add(j)
+        # TF-IDFベクトル化
+        vectorizer = TfidfVectorizer()
+        tfidf_matrix = vectorizer.fit_transform(all_paragraphs)
+        # コサイン類似度の計算
+        cosine_sim_matrix = cosine_similarity(tfidf_matrix)
 
-            self.all_paragraphs = [p for i, p in enumerate(self.all_paragraphs) if i not in to_remove]
-            print(f'類似度に基づいて削除されたパラグラフの数: {len(to_remove)}')
-        except ValueError as e:
-            print(f"エラーが発生しましたが、処理を続行します: {e}")
+        # 類似パラグラフの除去
+        to_remove = set()
+        for i in range(len(cosine_sim_matrix)):
+            for j in range(i + 1, len(cosine_sim_matrix)):
+                if cosine_sim_matrix[i, j] > threshold:
+                    to_remove.add(j)
+
+        # 更新されたパラグラフセットを作成
+        unique_paragraphs = [paragraph for i, paragraph in enumerate(all_paragraphs) if i not in to_remove]
+        removed_paragraph_count = original_paragraph_count - len(unique_paragraphs)  # 削除されたパラグラフの個数
+
+        # final_texts_per_urlを更新
+        new_final_texts_per_url = {}
+        paragraph_index = 0
+        for url, paragraphs in self.final_texts_per_url.items():
+            new_paragraphs = []
+            for _ in paragraphs:
+                if paragraph_index < len(unique_paragraphs):
+                    new_paragraphs.append(unique_paragraphs[paragraph_index])
+                    paragraph_index += 1
+            new_final_texts_per_url[url] = new_paragraphs
+
+        self.final_texts_per_url = new_final_texts_per_url
+
+        # 削除されたパラグラフの個数を出力
+        print(f'削除されたパラグラフの個数: {removed_paragraph_count}')
 
     def remove_duplicate_texts(self):
         """
@@ -129,6 +152,8 @@ class App:
 
         # 重複しているパラグラフを削除
         for url, paragraphs in self.final_texts_per_url.items():
+            if paragraphs is None:
+                continue
             self.final_texts_per_url[url] = [p for p in paragraphs if paragraph_counter[p] == 1]
 
 
@@ -244,16 +269,16 @@ def train_model():
     # レスポンスを直ちに返す
     return jsonify({"message": "Model training initiated"}), 202
 
-if __name__ == '__main__':
-   app.run(debug=True)
-
-
 #if __name__ == '__main__':
+#   app.run(debug=True)
+
+
+if __name__ == '__main__':
     # テスト用のURLとパラメータを設定
-#    test_url = "https://scholar.google.com/scholar?hl=ja&as_sdt=0,5&q=something&btnG=&oq=something"
-#    desired_chars_per_cluster = 5000
-#   model_id = "test_model_1"
-#    url_structure = "all"
+    test_url = "https://xtech.nikkei.com/"
+    desired_chars_per_cluster = 5000
+    model_id = "00"
+    url_structure = "https://xtech.nikkei.com/atcl/nxt"
 
     # background_task関数を直接呼び出して処理を実行
-#    background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
+    background_task(test_url, desired_chars_per_cluster, model_id, url_structure)

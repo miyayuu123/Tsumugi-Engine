@@ -148,24 +148,27 @@ class URLModule:
         return asyncio.run(self.crawl_by_structure_with_js(base_url, chosen_structure, max_urls))
 
     async def get_links_from_js_page(self, url, max_urls=10):
-        visited = set()
-        async with async_playwright() as pw:
-            browser = await pw.chromium.connect_over_cdp(self.SBR_WS_CDP)
-            try:
-                page = await browser.new_page()
-                await page.goto(url)
-                links = await page.query_selector_all('a[href]')
-                shuffle(links)
-                index = 0
-                while len(visited) < max_urls and index < len(links):
-                    link = links[index]
-                    href = await link.get_attribute('href')
-                    absolute_url = urljoin(url, href)
-                    visited.add(absolute_url)
-                    index += 1
-            finally:
-                await browser.close()
-        return visited
+        try:
+            visited = set()
+            async with async_playwright() as pw:
+                browser = await pw.chromium.connect_over_cdp(self.SBR_WS_CDP)
+                try:
+                    page = await browser.new_page()
+                    await page.goto(url)
+                    links = await page.query_selector_all('a[href]')
+                    shuffle(links)
+                    index = 0
+                    while len(visited) < max_urls and index < len(links):
+                        link = links[index]
+                        href = await link.get_attribute('href')
+                        absolute_url = urljoin(url, href)
+                        visited.add(absolute_url)
+                        index += 1
+                finally:
+                    await browser.close()
+            return visited
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
     def fetch_links_from_js_page(self, url, max_urls=10):
         return asyncio.run(self.get_links_from_js_page(url, max_urls))
