@@ -240,12 +240,12 @@ def train_model():
 #   app.run(debug=True)
 
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     # テスト用のURLとパラメータを設定
-    test_url = "https://www.forbes.com/"
-    desired_chars_per_cluster = 5000
-    model_id = "test_model_1"
-    url_structure = "https://www.forbes.com/sites"
+#    test_url = "https://www.forbes.com/"
+#    desired_chars_per_cluster = 5000
+#    model_id = "test_model_1"
+#    url_structure = "https://www.forbes.com/sites"
 
     # background_task関数を直接呼び出して処理を実行
-    background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
+#    background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
