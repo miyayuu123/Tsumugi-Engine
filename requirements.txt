@@ -8,3 +8,4 @@ scikit-learn
 supabase
 numpy
 gunicorn
+langdetect
