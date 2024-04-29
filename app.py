@@ -241,10 +241,11 @@ class App:
             self.update_model_status_and_insert_result(model_id, self.final_blocks)
 
     def update_model_status_and_insert_result(self, model_id, result_json):
-            # modelsテーブルのstatusを更新
-            update_response = supabase.table("models").update({"status": "finished"}).eq("model_id", model_id).execute()
-            # resultテーブルに新しいレコードを挿入
-            insert_response = supabase.table("results").insert({"model_id": model_id, "result": result_json}).execute()
+        # modelsテーブルのstatusを更新
+        update_response = supabase.table("models").update({"status": "finished"}).eq("model_id", model_id).execute()
+        # resultテーブルに新しいレコードを挿入、result_jsonの各要素をresult_textカラムに格納
+        for text_block in result_json:
+            insert_response = supabase.table("results").insert({"model_id": model_id, "result_text": text_block['content']}).execute()
 
 
 def background_task(url, desired_chars_per_cluster, model_id, url_structure):
@@ -269,16 +270,16 @@ def train_model():
     # レスポンスを直ちに返す
     return jsonify({"message": "Model training initiated"}), 202
 
-if __name__ == '__main__':
-   app.run(debug=True)
-
-
 #if __name__ == '__main__':
+#   app.run(debug=True)
+
+
+if __name__ == '__main__':
     # テスト用のURLとパラメータを設定
-#    test_url = "https://scholar.google.com/scholar?hl=ja&as_sdt=0,5&q=something&btnG=&oq=something"
-#    desired_chars_per_cluster = 5000
-#    model_id = "00"
-#    url_structure = "all"
+    test_url = "https://www.jstage.jst.go.jp/browse/-char/ja"
+    desired_chars_per_cluster = 5000
+    model_id = "00"
+    url_structure = "all"
 
     # background_task関数を直接呼び出して処理を実行
-#    background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
+    background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
