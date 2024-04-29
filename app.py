@@ -245,7 +245,9 @@ class App:
         update_response = supabase.table("models").update({"status": "finished"}).eq("model_id", model_id).execute()
         # resultテーブルに新しいレコードを挿入、result_jsonの各要素をresult_textカラムに格納
         for text_block in result_json:
-            insert_response = supabase.table("results").insert({"model_id": model_id, "result_text": text_block['content']}).execute()
+            # Unicodeエスケープされた文字列を適切にエンコード
+            formatted_text = json.dumps(text_block['content'], ensure_ascii=False)
+            insert_response = supabase.table("results").insert({"model_id": model_id, "result_text": formatted_text}).execute()
 
 
 def background_task(url, desired_chars_per_cluster, model_id, url_structure):
