@@ -201,7 +201,7 @@ class App:
         total_chars = sum(len(' '.join(block['content'])) for block in self.final_blocks)
 
         # JavaScriptが含まれるブロックの割合が50%を超え、かつ総合文字数が500文字以下の場合、再取得する
-        if js_ratio > 0.5 and total_chars <= 500:
+        if js_ratio > 0.5 and total_chars <= self.desired_chars_per_cluster / 10:
             if self.retry_count < 3:  # 無料版は、再取得の試行回数に制限を設ける
                 print("取得した結果の大半がJavaScriptを含んでいる、または総合文字数が500文字以下のため、再取得します。")
                 self.retry_count += 1  # 試行回数をインクリメント
