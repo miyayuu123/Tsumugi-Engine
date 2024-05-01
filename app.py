@@ -157,7 +157,7 @@ class App:
             self.final_texts_per_url[url] = [p for p in paragraphs if paragraph_counter[p] == 1]
 
 
-    def create_text_blocks_and_count_chars(self, max_chars=5000):
+    def create_text_blocks_and_count_chars(self):
         # remove_duplicate_textsメソッドを呼び出して重複を削除
         self.remove_duplicate_texts()
 
@@ -169,7 +169,7 @@ class App:
             current_chars = 0
             for paragraph in paragraphs:
                 paragraph_len = len(paragraph)
-                if current_chars + paragraph_len > max_chars:
+                if current_chars + paragraph_len > self.desired_chars_per_cluster:
                     if current_block:
                         text_blocks.append({
                             "ID": f"クラスタ{block_id}",
@@ -183,7 +183,7 @@ class App:
                 else:
                     current_block.append(paragraph)
                     current_chars += paragraph_len
-            if current_block and current_chars > self.desired_chars_per_cluster / 10:
+            if current_block and current_chars > self.desired_chars_per_cluster:
                 text_blocks.append({
                     "ID": f"クラスタ{block_id}",
                     "url": url,
