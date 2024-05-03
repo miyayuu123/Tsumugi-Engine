@@ -18,7 +18,6 @@ import socket
 
 
 class URLModule:
-    PROXY_SERVER = 'http://brd-customer-hl_334d7f0d-zone-unblocker:l04btgzq53bu@brd.superproxy.io:22225'
     SBR_WS_CDP = 'wss://brd-customer-hl_334d7f0d-zone-scraping_browser1:m30rrqh0eidq@brd.superproxy.io:9222'
     CERT_PATH = os.path.join(os.path.dirname(__file__), 'ssl_cert.pem')
     def __init__(self, gpt_api_key):
@@ -110,7 +109,9 @@ class URLModule:
         similar_structure_urls = []
 
         async with async_playwright() as pw:
-            browser = await pw.chromium.connect_over_cdp(self.SBR_WS_CDP)
+            browser = await pw.chromium.launch(proxy={
+                'server': f'socks5://localhost:{self.socks_port}'  # クラスで定義されたSOCKSポートを使用
+            })
             try:
                 page = await browser.new_page()
 
@@ -158,7 +159,9 @@ class URLModule:
         try:
             visited = set()
             async with async_playwright() as pw:
-                browser = await pw.chromium.connect_over_cdp(self.SBR_WS_CDP)
+                browser = await pw.chromium.launch(proxy={
+                    'server': f'socks5://localhost:{self.socks_port}'  # クラスで定義されたSOCKSポートを使用
+                })
                 try:
                     page = await browser.new_page()
                     await page.goto(url)

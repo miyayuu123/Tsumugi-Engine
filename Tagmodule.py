@@ -8,7 +8,6 @@ import socks
 import socket
 
 class Tagmodule:
-    PROXY_SERVER = 'http://brd-customer-hl_334d7f0d-zone-unblocker:l04btgzq53bu@brd.superproxy.io:22225'
     CERT_PATH = os.path.join(os.path.dirname(__file__), 'ssl_cert.pem')
 
     def __init__(self):
