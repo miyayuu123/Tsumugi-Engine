@@ -13,6 +13,8 @@ from playwright.async_api import async_playwright
 from playwright.async_api import async_playwright, TimeoutError
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from random import shuffle
+import socks
+import socket
 
 
 class URLModule:
@@ -21,10 +23,17 @@ class URLModule:
     CERT_PATH = os.path.join(os.path.dirname(__file__), 'ssl_cert.pem')
     def __init__(self, gpt_api_key):
         self.gpt_client = GPTClient(gpt_api_key)
+        self.socks_port = 9052  # TorのSOCKSポートを指定
 
-    def build_opener(self, ssl_context):
+    def build_opener(self, ssl_context=None):
+        if ssl_context is None:
+            ssl_context = ssl._create_unverified_context()  # SSL検証を無効にする
+
+        socks.set_default_proxy(socks.SOCKS5, "localhost", self.socks_port)
+        socket.socket = socks.socksocket
+
         return urllib.request.build_opener(
-            urllib.request.ProxyHandler({'http': self.PROXY_SERVER, 'https': self.PROXY_SERVER}),
+            urllib.request.ProxyHandler({}),
             urllib.request.HTTPSHandler(context=ssl_context)
         )
 
@@ -45,9 +54,7 @@ class URLModule:
                     return result_with_js
             else:
                 chosen_structure = structure
-                # JavaScriptを使用してクロールするメソッドの結果を取得
                 result_with_js = self.crawl_by_structure_with_js_sync(url, chosen_structure, max_urls)
-                # 結果が何もなかった場合、JavaScriptを使用しないメソッドでクロール
                 if not result_with_js:
                     return self.crawl_by_structure(url, chosen_structure, max_urls)
                 else:
@@ -60,7 +67,7 @@ class URLModule:
         similar_structure_urls = []
 
         # SSLコンテキストとオープナーの準備
-        ssl_context = ssl.create_default_context(cafile=self.CERT_PATH)
+        ssl_context = ssl.create_default_context()
         opener = self.build_opener(ssl_context)
 
         # 取得したURLの数をカウントする
@@ -177,7 +184,7 @@ class URLModule:
         visited = set()
 
         try:
-            ssl_context = ssl.create_default_context(cafile=self.CERT_PATH)
+            ssl_context = ssl.create_default_context()
             opener = self.build_opener(ssl_context)
             with opener.open(url) as response:
                 html_content = response.read()

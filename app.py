@@ -13,6 +13,13 @@ import threading
 from supabase import create_client, Client
 from dotenv import load_dotenv
 import os
+import subprocess
+import signal
+from stem import Signal
+from stem.control import Controller
+import time
+
+
 
 app = Flask(__name__)
 
@@ -265,6 +272,7 @@ def train_model():
     desired_chars_per_cluster = data.get('desired_chars_per_cluster', 5000)
     url_structure = data.get('structure')
 
+    start_tor()
     # バックグラウンドタスクをスレッドで実行
     thread = threading.Thread(target=background_task, args=(url, desired_chars_per_cluster, model_id, url_structure))
     thread.start()
@@ -272,16 +280,63 @@ def train_model():
     # レスポンスを直ちに返す
     return jsonify({"message": "Model training initiated"}), 202
 
-#if __name__ == '__main__':
-#   app.run(debug=True)
+def kill_tor():
+    try:
+        # 'tor'プロセスのPIDを取得
+        pids = subprocess.check_output(["pgrep", "tor"]).decode().split()
+        for pid in pids:
+            try:
+                os.kill(int(pid), signal.SIGTERM)
+                print(f"Torプロセス {pid} を終了しました。")
+            except PermissionError:
+                print(f"Torプロセス {pid} の終了に必要な権限がありません。")
+    except subprocess.CalledProcessError:
+        print("実行中のTorプロセスはありません。")
+
+
+def start_tor():
+    global tor_process
+    tor_executable_path = 'bin/tor-expert-bundle/tor/tor'
+    tor_config_path = 'torrc'
+
+    # 既存のTorプロセスを終了
+    kill_tor()
+
+    # Torプロセスを非同期で起動し、標準出力と標準エラー出力をキャプチャ
+    tor_process = subprocess.Popen(
+        [tor_executable_path, '-f', tor_config_path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True
+    )
+
+    print("新しいTorプロセスを起動しました。ログを監視しています...")
+
+    # ログ出力をリアルタイムで監視
+    while True:
+        line = tor_process.stdout.readline()
+        if not line:
+            break
+        print(line.strip())
+        if "Bootstrapped 100% (done): Done" in line:
+            print("Torが完全に起動しました。次の工程に進みます。")
+            break
+
+    # 他のプロセスを続行
+    print("他のプロセスを開始します。")
 
 
 if __name__ == '__main__':
+   app.run(debug=True)
+
+
+#if __name__ == '__main__':
     # テスト用のURLとパラメータを設定
-    test_url = "https://www.jstage.jst.go.jp/browse/-char/ja"
-    desired_chars_per_cluster = 5000
-    model_id = "00"
-    url_structure = "all"
+    #start_tor()
+    #test_url = "https://ja.wikipedia.org/wiki/%E6%88%A6%E5%9B%BD%E6%99%82%E4%BB%A3_(%E6%97%A5%E6%9C%AC)"
+    #desired_chars_per_cluster = 5000
+    #model_id = "00"
+    #url_structure = "all"
 
     # background_task関数を直接呼び出して処理を実行
-    background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
+    #background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
