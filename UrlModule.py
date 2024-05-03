@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from random import shuffle
 import socks
 import socket
-
+import gc  # Garbage collection module imported
 
 class URLModule:
     SBR_WS_CDP = 'wss://brd-customer-hl_334d7f0d-zone-scraping_browser1:m30rrqh0eidq@brd.superproxy.io:9222'
@@ -175,7 +175,9 @@ class URLModule:
                         visited.add(absolute_url)
                         index += 1
                 finally:
+                    await page.close()
                     await browser.close()
+                    gc.collect()  # Garbage collection after browser session
             return visited
         except Exception as e:
             print(f"An error occurred: {e}")
@@ -207,13 +209,6 @@ class URLModule:
 
         return visited
 
-
-
-
-
-
-
-###使用しない
     async def inpit_search_from_input_box(self, url, search_query):
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(headless=False)  # ヘッドレスモードでブラウザを起動
