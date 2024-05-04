@@ -258,7 +258,8 @@ class App:
 
 
 def background_task(url, desired_chars_per_cluster, model_id, url_structure):
-    app_instance = App(url, desired_chars_per_cluster, url_structure)  # url_structureを渡す
+    start_tor()  # Torをバックグラウンドタスク内で起動
+    app_instance = App(url, desired_chars_per_cluster, url_structure)
     app_instance.extract_and_process_texts(url_structure)
     app_instance.remove_similar_paragraphs()
     app_instance.create_text_blocks_and_count_chars()
@@ -272,7 +273,6 @@ def train_model():
     desired_chars_per_cluster = data.get('desired_chars_per_cluster', 5000)
     url_structure = data.get('structure')
 
-    start_tor()
     # バックグラウンドタスクをスレッドで実行
     thread = threading.Thread(target=background_task, args=(url, desired_chars_per_cluster, model_id, url_structure))
     thread.start()
