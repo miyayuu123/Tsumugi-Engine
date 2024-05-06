@@ -296,7 +296,7 @@ def kill_tor():
 
 def start_tor():
     global tor_process
-    tor_executable_path = 'bin/tor-expert-bundle-prod/tor/tor'
+    tor_executable_path = 'bin/tor-expert-bundle-dev/tor/tor'
     tor_config_path = 'torrc'
 
     # 既存のTorプロセスを終了
@@ -332,11 +332,10 @@ if __name__ == '__main__':
 
 #if __name__ == '__main__':
     # テスト用のURLとパラメータを設定
-    #start_tor()
-    #test_url = "https://ja.wikipedia.org/wiki/%E6%88%A6%E5%9B%BD%E6%99%82%E4%BB%A3_(%E6%97%A5%E6%9C%AC)"
-    #desired_chars_per_cluster = 5000
-    #model_id = "00"
-    #url_structure = "all"
+#    test_url = "https://xtech.nikkei.com/"
+#    desired_chars_per_cluster = 5000
+#    model_id = "00"
+#    url_structure = "https://xtech.nikkei.com/atcl/nxt"
 
     # background_task関数を直接呼び出して処理を実行
-    #background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
+#    background_task(test_url, desired_chars_per_cluster, model_id, url_structure)
