@@ -296,7 +296,7 @@ def kill_tor():
 
 def start_tor():
     global tor_process
-    tor_executable_path = 'bin/tor-expert-bundle-dev/tor/tor'
+    tor_executable_path = 'bin/tor-expert-bundle-prod/tor/tor'
     tor_config_path = 'torrc'
 
     # 既存のTorプロセスを終了
