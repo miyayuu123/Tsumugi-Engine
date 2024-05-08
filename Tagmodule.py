@@ -4,15 +4,17 @@ import re
 import os
 import ssl
 import langdetect
+import socks
+import socket
 
 class Tagmodule:
-    PROXY_SERVER = 'http://brd-customer-hl_334d7f0d-zone-unblocker:l04btgzq53bu@brd.superproxy.io:22225'
     CERT_PATH = os.path.join(os.path.dirname(__file__), 'ssl_cert.pem')
 
     def __init__(self):
         # SSLコンテキストの作成
         self.ssl_context = ssl.create_default_context(cafile=self.CERT_PATH)
         self.language = "unknown"  # 初期状態では言語は未定
+        self.socks_port = 9052  # TorのSOCKSポートを指定
 
     def detect_language(self, text):
         try:
@@ -22,17 +24,17 @@ class Tagmodule:
             self.language = "unknown"
             print("[デバッグ] 言語検出失敗: unknown")
 
-    def build_opener(self):
-        # プロキシハンドラーとHTTPSハンドラーを設定
-        proxy_handler = urllib.request.ProxyHandler({
-            'http': self.PROXY_SERVER,
-            'https': self.PROXY_SERVER,
-        })
-        https_handler = urllib.request.HTTPSHandler(context=self.ssl_context)
+    def build_opener(self, ssl_context=None):
+        if ssl_context is None:
+            ssl_context = ssl._create_unverified_context()  # SSL検証を無効にする
 
-        # オープナーの作成
-        opener = urllib.request.build_opener(proxy_handler, https_handler)
-        return opener
+        socks.set_default_proxy(socks.SOCKS5, "localhost", self.socks_port)
+        socket.socket = socks.socksocket
+
+        return urllib.request.build_opener(
+            urllib.request.ProxyHandler({}),
+            urllib.request.HTTPSHandler(context=ssl_context)
+        )
 
     def extract_text_without_splitting(self, url):
         opener = self.build_opener()

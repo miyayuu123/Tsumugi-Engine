@@ -13,18 +13,25 @@ from playwright.async_api import async_playwright
 from playwright.async_api import async_playwright, TimeoutError
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from random import shuffle
-
+import socks
+import socket
+import gc  # Garbage collection module imported
 
 class URLModule:
-    PROXY_SERVER = 'http://brd-customer-hl_334d7f0d-zone-unblocker:l04btgzq53bu@brd.superproxy.io:22225'
-    SBR_WS_CDP = 'wss://brd-customer-hl_334d7f0d-zone-scraping_browser1:m30rrqh0eidq@brd.superproxy.io:9222'
     CERT_PATH = os.path.join(os.path.dirname(__file__), 'ssl_cert.pem')
     def __init__(self, gpt_api_key):
         self.gpt_client = GPTClient(gpt_api_key)
+        self.socks_port = 9052  # TorのSOCKSポートを指定
 
-    def build_opener(self, ssl_context):
+    def build_opener(self, ssl_context=None):
+        if ssl_context is None:
+            ssl_context = ssl._create_unverified_context()  # SSL検証を無効にする
+
+        socks.set_default_proxy(socks.SOCKS5, "localhost", self.socks_port)
+        socket.socket = socks.socksocket
+
         return urllib.request.build_opener(
-            urllib.request.ProxyHandler({'http': self.PROXY_SERVER, 'https': self.PROXY_SERVER}),
+            urllib.request.ProxyHandler({}),
             urllib.request.HTTPSHandler(context=ssl_context)
         )
 
@@ -45,9 +52,7 @@ class URLModule:
                     return result_with_js
             else:
                 chosen_structure = structure
-                # JavaScriptを使用してクロールするメソッドの結果を取得
                 result_with_js = self.crawl_by_structure_with_js_sync(url, chosen_structure, max_urls)
-                # 結果が何もなかった場合、JavaScriptを使用しないメソッドでクロール
                 if not result_with_js:
                     return self.crawl_by_structure(url, chosen_structure, max_urls)
                 else:
@@ -60,7 +65,7 @@ class URLModule:
         similar_structure_urls = []
 
         # SSLコンテキストとオープナーの準備
-        ssl_context = ssl.create_default_context(cafile=self.CERT_PATH)
+        ssl_context = ssl.create_default_context()
         opener = self.build_opener(ssl_context)
 
         # 取得したURLの数をカウントする
@@ -103,7 +108,9 @@ class URLModule:
         similar_structure_urls = []
 
         async with async_playwright() as pw:
-            browser = await pw.chromium.connect_over_cdp(self.SBR_WS_CDP)
+            browser = await pw.chromium.launch(proxy={
+                'server': f'socks5://localhost:{self.socks_port}'  # クラスで定義されたSOCKSポートを使用
+            })
             try:
                 page = await browser.new_page()
 
@@ -151,7 +158,9 @@ class URLModule:
         try:
             visited = set()
             async with async_playwright() as pw:
-                browser = await pw.chromium.connect_over_cdp(self.SBR_WS_CDP)
+                browser = await pw.chromium.launch(proxy={
+                    'server': f'socks5://localhost:{self.socks_port}'  # クラスで定義されたSOCKSポートを使用
+                })
                 try:
                     page = await browser.new_page()
                     await page.goto(url)
@@ -165,7 +174,9 @@ class URLModule:
                         visited.add(absolute_url)
                         index += 1
                 finally:
+                    await page.close()
                     await browser.close()
+                    gc.collect()  # Garbage collection after browser session
             return visited
         except Exception as e:
             print(f"An error occurred: {e}")
@@ -177,7 +188,7 @@ class URLModule:
         visited = set()
 
         try:
-            ssl_context = ssl.create_default_context(cafile=self.CERT_PATH)
+            ssl_context = ssl.create_default_context()
             opener = self.build_opener(ssl_context)
             with opener.open(url) as response:
                 html_content = response.read()
@@ -197,13 +208,6 @@ class URLModule:
 
         return visited
 
-
-
-
-
-
-
-###使用しない
     async def inpit_search_from_input_box(self, url, search_query):
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(headless=False)  # ヘッドレスモードでブラウザを起動
