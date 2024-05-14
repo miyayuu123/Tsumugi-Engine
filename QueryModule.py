@@ -13,7 +13,7 @@ import requests
 class QueryModule:
     CERT_PATH = os.path.join(os.path.dirname(__file__), 'ssl_cert.pem')
     def __init__(self, gpt_api_key):
-        self.gpt_client = GPTClient(gpt_api_key)
+        self.gpt_client = GPTClient()
         self.generated_keywords = set()  # 生成されたキーワードを追跡するセット
         self.socks_port = 9052  # TorのSOCKSポートを指定
         socks.set_default_proxy(socks.SOCKS5, "localhost", self.socks_port)

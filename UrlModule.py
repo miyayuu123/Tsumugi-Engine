@@ -20,7 +20,7 @@ import gc  # Garbage collection module imported
 class URLModule:
     CERT_PATH = os.path.join(os.path.dirname(__file__), 'ssl_cert.pem')
     def __init__(self, gpt_api_key):
-        self.gpt_client = GPTClient(gpt_api_key)
+        self.gpt_client = GPTClient()
         self.socks_port = 9052  # TorのSOCKSポートを指定
 
     def build_opener(self, ssl_context=None):

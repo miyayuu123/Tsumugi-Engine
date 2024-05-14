@@ -5,4 +5,4 @@ SOCKSPort 9052
 ControlPort 9053
 
 HashedControlPassword 16:3E1D98A81B5EEFC96004A723E2FB515CBA235F901409181B4686531159
-DataDirectory bin/tor-expert-bundle-dev/data
+DataDirectory bin/tor-expert-bundle-prod/data

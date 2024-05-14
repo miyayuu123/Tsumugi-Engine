@@ -6,6 +6,9 @@ import ssl
 import langdetect
 import socks
 import socket
+import io
+from PyPDF2 import PdfReader
+from Crypto.Cipher import AES
 
 class Tagmodule:
     CERT_PATH = os.path.join(os.path.dirname(__file__), 'ssl_cert.pem')
@@ -36,41 +39,61 @@ class Tagmodule:
             urllib.request.HTTPSHandler(context=ssl_context)
         )
 
-    def extract_text_without_splitting(self, url):
+    def extract_text_from_pdf(self, url):
         opener = self.build_opener()
-        # オープナーを使用してリクエストを実行
         with opener.open(url) as response:
-            html = response.read()
+            file = io.BytesIO(response.read())
+        reader = PdfReader(file)
+        text = ""
+        if reader.is_encrypted:
+            try:
+                reader.decrypt("")  # 空のパスワードで試みる
+            except Exception as e:
+                print(f"PDFの復号に失敗しました: {e}")
+                return ""
+        for page in reader.pages:
+            text += page.extract_text()
+        return text
 
-        soup = BeautifulSoup(html, 'html.parser')
-        # ページのタイトルを取得
-        page_title = soup.title.string if soup.title else "No Title"
-        main_content = soup.find('main')
-        if main_content is None:
-            main_content = soup
-        for tag in main_content(['script', 'style', 'header', 'footer', 'nav', 'aside', 'td', 'h1', 'table', 'li', 'ul', 'ol']):
-            tag.extract()
+    def extract_text_without_splitting(self, url):
+        if url.lower().endswith('.pdf'):
+            complete_text = self.extract_text_from_pdf(url)
+            page_title = "PDF Document"
+        else:
+            opener = self.build_opener()
+            # オープナーを使用してリクエストを実行
+            with opener.open(url) as response:
+                html = response.read()
 
-        def join_texts(tag):
-            texts = []
-            for child in tag.descendants:
-                if isinstance(child, NavigableString):
-                    child_str = str(child)
-                    # ここで改行をそのまま保持
-                    texts.append(child_str)
-            # テキスト間の不要な空白を削除しつつ、改行は保持
-            return ''.join(texts)
+            soup = BeautifulSoup(html, 'html.parser')
+            # ページのタイトルを取得
+            page_title = soup.title.string if soup.title else "No Title"
+            main_content = soup.find('main')
+            if main_content is None:
+                main_content = soup
+            for tag in main_content(['script', 'style', 'header', 'footer', 'nav', 'aside', 'td', 'h1', 'table', 'li', 'ul', 'ol']):
+                tag.extract()
 
-        complete_text = join_texts(main_content)
-        complete_text = re.sub(r'[!"#$%&\'\\\\()*+,-./:;<=>?@[\\]^_`{|}~「」〔〕“”〈〉『』【】＆＊・（）＄＃＠。、？！｀＋￥％]', '', complete_text)
-        complete_text = re.sub(r'\[.*?\]|\(.*?\)|\{.*?\}|\（.*?\）', '', complete_text)
-        complete_text = re.sub(r"<.*?>", "", complete_text)
+            def join_texts(tag):
+                texts = []
+                for child in tag.descendants:
+                    if isinstance(child, NavigableString):
+                        child_str = str(child)
+                        # ここで改行をそのまま保持
+                        texts.append(child_str)
+                # テキスト間の不要な空白を削除しつつ、改行は保持
+                return ''.join(texts)
 
+            complete_text = join_texts(main_content)
+            complete_text = re.sub(r'[!"#$%&\'\\\\()*+,-./:;<=>?@[\\]^_`{|}~「」〔〕“”〈〉『』【】＆＊・（）＄＃＠。、？！｀＋￥％]', '', complete_text)
+            complete_text = re.sub(r'\[.*?\]|\(.*?\)|\{.*?\}|\（.*?\）', '', complete_text)
+            complete_text = re.sub(r"<.*?>", "", complete_text)
 
-        complete_text = re.sub(r' +', ' ', complete_text)
-        complete_text = re.sub(r'\n ', '\n', complete_text)
-        complete_text = re.sub(r' \n', '\n', complete_text)
-        complete_text = re.sub(r'^\s+', '', complete_text)
+            complete_text = re.sub(r' +', ' ', complete_text)
+            complete_text = re.sub(r'\n ', '\n', complete_text)
+            complete_text = re.sub(r' \n', '\n', complete_text)
+            complete_text = re.sub(r'^\s+', '', complete_text)
+
         self.detect_language(complete_text)  # テキスト全体で言語を判定
         if "wikipedia" in url:
             # "出典: フリー百科事典『ウィキペディア』"で始まるかチェック

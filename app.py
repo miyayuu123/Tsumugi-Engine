@@ -256,7 +256,7 @@ def kill_tor():
 
 def start_tor():
     global tor_process
-    tor_executable_path = 'bin/tor-expert-bundle-dev/tor/tor'
+    tor_executable_path = 'bin/tor-expert-bundle-prod/tor/tor'
     tor_config_path = 'torrc'
     kill_tor()
     tor_process = subprocess.Popen(
@@ -276,13 +276,13 @@ def start_tor():
             break
     print("他のプロセスを開始します。")
 
-#if __name__ == '__main__':
-#   app.run(debug=True)
-
 if __name__ == '__main__':
-    test_url = "https://ja.wikipedia.org/wiki/Wikipedia:%E3%82%A6%E3%82%A3%E3%82%AD%E3%83%9A%E3%83%87%E3%82%A3%E3%82%A2%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6"
-    desired_chars_per_cluster = 500
-    query = "コンプラ"
-    model_id = "6f3dcba3-c887-423a-b69a-61c2f346d44d"
-    url_structure = "all"
-    background_task(desired_chars_per_cluster, model_id, url_structure, query)
+   app.run(debug=True)
+
+#if __name__ == '__main__':
+#    test_url = "https://ja.wikipedia.org/wiki/Wikipedia:%E3%82%A6%E3%82%A3%E3%82%AD%E3%83%9A%E3%83%87%E3%82%A3%E3%82%A2%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6"
+#    desired_chars_per_cluster = 500
+#    query = "コンプラ"
+#    model_id = "6f3dcba3-c887-423a-b69a-61c2f346d44d"
+#    url_structure = "all"
+#    background_task(desired_chars_per_cluster, model_id, url_structure, query)
